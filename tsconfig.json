@@ -17,6 +17,6 @@
   },
   "include": [
     "src/**/*",
-    "lib/index.d.ts" // declaration file path
+    "lib/types.d.ts" // declaration file path
   ]
 }
