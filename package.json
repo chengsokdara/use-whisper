@@ -1,0 +1,68 @@
+{
+  "name": "use-whisper",
+  "version": "0.0.1",
+  "description": "React Hook for OpenAI Whisper API with speech recorder and silence removal built-in.",
+  "keywords": [
+    "react",
+    "hook",
+    "hooks",
+    "openai",
+    "api",
+    "whisper",
+    "speech",
+    "voice",
+    "record",
+    "recorder",
+    "silence",
+    "remove",
+    "removal"
+  ],
+  "homepage": "https://github.com/chengsokdara/use-whisper#readme",
+  "bugs": "https://github.com/chengsokdara/use-whisper/issues",
+  "license": "MIT",
+  "author": "Sokdara Cheng <chengsokdara@gmail.com> (https://chengsokdara.github.io)",
+  "repository": "github:chengsokdara/use-whisper",
+  "scripts": {
+    "ts-types": "tsc",
+    "build-dev": "rimraf lib && tsup --watch",
+    "build-prod": "rimraf dist && env NODE_ENV=production tsup",
+    "build-watch": "tsup --watch",
+    "lint-fix": "eslint ./src --ext .ts,.tsx --quiet --fix --ignore-path ./.gitignore",
+    "lint-format": "prettier  --loglevel warn --write \"./**/*.{ts,tsx,css,md,json}\" ",
+    "lint": "yarn lint:format && yarn lint:fix "
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.6",
+    "@typescript-eslint/eslint-plugin": "^5.54.0",
+    "@typescript-eslint/parser": "^5.54.0",
+    "eslint": "^8.35.0",
+    "eslint-config-prettier": "^8.7.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.4",
+    "react": "^18.2.0",
+    "tsup": "^6.6.3",
+    "typescript": "^4.9.5"
+  },
+  "peerDependencies": {
+    "react": "*"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "node": "./dist/index.cjs",
+    "require": "./dist/index.cjs",
+    "import": "./dist/index.js",
+    "default": "./dist/index.cjs"
+  },
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@types/react": "^18.0.28"
+  }
+}

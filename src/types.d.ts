@@ -1,0 +1,1 @@
+type UseWhisperHook = () => null
