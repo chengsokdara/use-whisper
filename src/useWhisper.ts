@@ -150,7 +150,7 @@ export const useWhisper: UseWhisperHook = (config) => {
           const response = await axios.post(whisperApiUrl, body, {
             headers,
           })
-          const { text } = await response.data()
+          const { text } = await response.data
           console.log('onTranscript', { text })
           setTranscript({
             blob,
