@@ -114,9 +114,8 @@ export const useWhisper: UseWhisperHook = (config) => {
           console.log({ out: out.buffer.byteLength })
           blob = new Blob([out.buffer], { type: 'audio/mpeg' })
         }
-        const file = new File([blob], 'speech.mp3')
         const body = new FormData()
-        body.append('file', file, 'speech.mp3')
+        body.append('file', blob)
         body.append('model', 'whisper-1')
         const response = await fetch(
           'https://api.openai.com/v1/audio/transcriptions',
