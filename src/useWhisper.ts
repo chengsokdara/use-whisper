@@ -1,14 +1,15 @@
+import type { RawAxiosRequestHeaders } from 'axios'
 import { type Harker } from 'hark'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Options, RecordRTCPromisesHandler } from 'recordrtc'
 import { useCallbackAsync, useEffectAsync } from './hooks'
 import type {
+  CustomServerRequestBody,
   UseWhisperConfig,
   UseWhisperHook,
   UseWhisperTimeout,
   UseWhisperTranscript,
 } from './types'
-import type { RawAxiosRequestHeaders } from 'axios'
 
 // const defaultPauseTimeout = 2_000
 const defaultStopTimeout = 5_000
@@ -16,7 +17,7 @@ const defaultStopTimeout = 5_000
 const defaultConfig: UseWhisperConfig = {
   apiKey: '',
   autoStart: false,
-  customServer: '',
+  customServer: undefined,
   nonStop: false,
   removeSilence: false,
   stopTimeout: defaultStopTimeout,
@@ -28,6 +29,10 @@ const defaultTimeout: UseWhisperTimeout = {
 }
 
 export const useWhisper: UseWhisperHook = (config) => {
+  if (!config?.customServer && !config?.apiKey) {
+    throw new Error('apiKey is required if customServer is not provided')
+  }
+
   const {
     apiKey,
     autoStart,
@@ -131,22 +136,41 @@ export const useWhisper: UseWhisperHook = (config) => {
             blob = new Blob([out.buffer], { type: 'audio/mpeg' })
           }
 
-          const body = new FormData()
-          const file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
-          body.append('file', file)
-          body.append('model', 'whisper-1')
-
-          const { default: axios } = await import('axios')
-          const headers: RawAxiosRequestHeaders = {
-            'Content-Type': 'multipart/form-data',
+          let whisperApiUrl = 'https://api.openai.com/v1/audio/transcriptions'
+          let body: string | FormData
+          const headers: RawAxiosRequestHeaders = {}
+          if (customServer) {
+            whisperApiUrl = customServer
+            const base64 = await new Promise<string | ArrayBuffer | null>(
+              (resolve) => {
+                const reader = new FileReader()
+                reader.onloadend = () => resolve(reader.result)
+                reader.readAsDataURL(blob)
+              }
+            )
+            body = JSON.stringify({
+              file: base64,
+              model: 'whisper-1',
+            } as CustomServerRequestBody)
+            headers['Content-Type'] = 'application/json'
+          } else {
+            body = new FormData()
+            let file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
+            if (removeSilence) {
+              file = new File([blob], 'speech.webm', {
+                type: 'audio/webm;codecs=opus',
+              })
+            }
+            body.append('file', file)
+            body.append('model', 'whisper-1')
+            headers['Content-Type'] = 'multipart/form-data'
           }
+
           if (apiKey) {
             headers['Authorization'] = `Bearer ${apiKey}`
           }
-          let whisperApiUrl = 'https://api.openai.com/v1/audio/transcriptions'
-          if (customServer) {
-            whisperApiUrl = customServer
-          }
+
+          const { default: axios } = await import('axios')
           const response = await axios.post(whisperApiUrl, body, {
             headers,
           })

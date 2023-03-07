@@ -1,20 +1,17 @@
-type UseWhisperNonStopConfig =
-  | {
-      nonStop?: false
-      stopTimeout?: number
-    }
-  | {
-      nonStop?: true
-      stopTimeout: number
-    }
-
 export type UseWhisperConfig = {
-  apiKey: string
+  apiKey?: string
   autoStart?: boolean
   customServer?: string
   // pauseTimeout?: number
+  nonStop?: false
   removeSilence?: boolean
-} & UseWhisperNonStopConfig
+  stopTimeout?: number
+}
+
+export type CustomServerRequestBody = {
+  file: string | ArrayBuffer | null
+  model: 'whisper-1' | string
+}
 
 export type UseWhisperTimeout = {
   pause?: NodeJS.Timeout

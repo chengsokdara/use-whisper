@@ -1,7 +1,11 @@
 # useWhisper
+
 React Hook for OpenAI Whisper API with speech recorder and silence removal built-in
 
 ---
+
+_Try OpenAI API price calculator, token counter, and dataset manager (preview)_
+[https://openai-price-calculator.web.app](https://openai-price-calculator.web.app)
 
 - ### Install
 
@@ -11,12 +15,52 @@ React Hook for OpenAI Whisper API with speech recorder and silence removal built
 
 - ### Usage
 
+- ###### Provide your own OpenAI API key
+
 ```jsx
 import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
+  const {
+    recording,
+    speaking,
+    transcript,
+    transcripting,
+    pauseRecording,
+    startRecording,
+    stopRecording,
+  } = useWhisper({
+    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+  })
+
+  return (
+    <div>
+      <p>Recording: {recording}</p>
+      <p>Speaking: {speaking}</p>
+      <p>Transcripting: {transcripting}</p>
+      <p>Transcribed Text: {transcript.text}</p>
+      <button onClick={() => startRecording()}>Start</button>
+      <button onClick={() => pauseRecording()}>Pause</button>
+      <button onClick={() => stopRecording()}>Stop</button>
+    </div>
+  )
+}
+```
+
+_**NOTE:** by providing apiKey, it could be exposed in the browser devtool network tab_
+
+- ###### Custom REST API (if you want to keep your OpenAI API key secure)
+
+```jsx
+// Client
+
+import { useWhisper } from '@chengsokdara/use-whisper'
+
+const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN // YOUR_OPEN_AI_TOKEN
+    // Optional: your server token if any, will be sent in Bearer
+    apiKey: env.process.YOUR_REST_API_AUTH_TOKEN,
+    customServer: 'https://example.com/api/whisper',
   })
 
   return (
@@ -27,9 +71,43 @@ const App = () => {
 }
 ```
 
-***NOTE: by providing your OpenAI API key, it could be exposed in the browser***
+```javascript
+// Server
+
+export default async function handler(req, res) {
+  const file = req.body.file
+  // file will be in base64 string
+  // you can convert it to buffer and save to disk
+  const base64data = file.replace('data:audio/webm;codecs=opus;base64,', '')
+  const audioData = Buffer.from(base64data, 'base64')
+  fs.writeFileSync('audio.webm', audioData)
+
+  // model will be whisper-1
+  const model = req.body.model
+}
+```
 
 - ### Examples
+
+- ###### Remove silence before sending to Whisper to save cost
+
+```jsx
+import { useWhisper } from '@chengsokdara/use-whisper'
+
+const App = () => {
+  const { transcript } = useWhisper({
+    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    // use ffmpeg-wasp to remove silence from recorded speech
+    removeSilence: true,
+  })
+
+  return (
+    <div>
+      <p>{transcript.text}</p>
+    </div>
+  )
+}
+```
 
 - ###### Auto start recording on component mounted
 
@@ -38,7 +116,9 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    autoStart: true // will auto start recording speech upon component mounted
+    // will auto start recording speech upon component mounted
+    //
+    autoStart: true,
   })
 
   return (
@@ -69,58 +149,46 @@ const App = () => {
 }
 ```
 
-- ###### Supply your own Whisper REST API instead of OpenAI NodeJS library
+- ### Dependencies
 
-```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
-
-const App = () => {
-  const { transcript } = useWhisper({
-    apiKey: env.process.YOUR_CUSTOM_TOKEN, // Optional: your server token if any
-    customServer: 'https://example.com/api/whisper'
-  })
-
-  return (
-    <div>
-      <p>{transcript.text}</p>
-    </div>
-  )
-}
-```
+  - **recordrtc:** cross-browser audio recorder
+  - **@ffmpeg/ffmpeg:** for remove silence feature
+  - **hark:** for speaking detection
+  - **axios:** since fetch does not work with Whisper API
 
 - ### API
 
 - ###### Config Object
 
-| Name         | Type        | Required | Default Value | Description |
-| ------------ | ----------- | -------- | ------------- | ----------- |
-| apiKey | string | yes | '' | your OpenAI API token |
-| autoStart | boolean |  | false | auto start speech recording on component mount |
-| customServer | string |  | '' | supply your own whisper REST API endpoint |
-| nonStop | boolean |  | false | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
-| removeSilence | boolean |  | false | remove silence before sending file to OpenAI API |
-| stopTimeout | number | yes/no | 5,000 ms | if nonStop is true, this become required. This control when the recorder auto stop |
+| Name          | Type    | Default Value | Description                                                                                                          |
+| ------------- | ------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| apiKey        | string  | ''            | your OpenAI API token                                                                                                |
+| autoStart     | boolean | false         | auto start speech recording on component mount                                                                       |
+| customServer  | string  | undefined     | supply your own whisper REST API endpoint                                                                            |
+| nonStop       | boolean | false         | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
+| removeSilence | boolean | false         | remove silence before sending file to OpenAI API                                                                     |
+| stopTimeout   | number  | 5,000 ms      | if nonStop is true, this become required. This control when the recorder auto stop                                   |
 
 - ###### Return Object
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| recording | boolean | speech recording state |
-| speaking | boolean | detect when user is speaking |
-| transcript | **Transcript** | object return after Whisper transcription complete |
-| transcripting | boolean | remove silence from speech and send request to OpenAI Whisper API |
-| pauseRecording | Promise | pause speech recording |
-| startRecording | Promise | start speech recording |
-| stopRecording | Promise | stop speech recording |
+| Name           | Type                          | Description                                                       |
+| -------------- | ----------------------------- | ----------------------------------------------------------------- |
+| recording      | boolean                       | speech recording state                                            |
+| speaking       | boolean                       | detect when user is speaking                                      |
+| transcript     | [**Transcript**](#transcript) | object return after Whisper transcription complete                |
+| transcripting  | boolean                       | remove silence from speech and send request to OpenAI Whisper API |
+| pauseRecording | Promise                       | pause speech recording                                            |
+| startRecording | Promise                       | start speech recording                                            |
+| stopRecording  | Promise                       | stop speech recording                                             |
 
-- ###### Transcript Return Object
+- ###### Transcript
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| blob | Blob | recorded speech in JavaScript Blob |
-| text | string | transcripted text returned from Whisper API |
+| Name | Type   | Description                                |
+| ---- | ------ | ------------------------------------------ |
+| blob | Blob   | recorded speech in JavaScript Blob         |
+| text | string | transcribed text returned from Whisper API |
 
 ---
 
-***Contact me for web or mobile app development using React or React Native***  
+**_Contact me for web or mobile app development using React or React Native_**  
 [https://chengsokdara.github.io](https://chengsokdara.github.io)

@@ -24,13 +24,13 @@
   "repository": "github:chengsokdara/use-whisper",
   "scripts": {
     "ts-types": "tsc",
-    "build-dev": "rimraf lib && tsup --watch",
+    "build-dev": "rimraf lib && env NODE_ENV=development tsup",
     "build-prod": "rimraf dist && env NODE_ENV=production tsup",
-    "build-watch": "tsup --watch",
+    "build-watch": "rimraf lib && env NODE_ENV=development tsup --watch",
     "lint-fix": "eslint ./src --ext .ts,.tsx --quiet --fix --ignore-path ./.gitignore",
     "lint-format": "prettier  --loglevel warn --write \"./**/*.{ts,tsx,css,md,json}\" ",
     "lint": "yarn lint-format && yarn lint-fix ",
-    "prepublishOnly": "yarn run build-dev && yarn run build-prod"
+    "prepublishOnly": "yarn run build-prod"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.11.6",
