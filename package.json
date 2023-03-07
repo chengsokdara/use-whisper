@@ -1,6 +1,6 @@
 {
   "name": "@chengsokdara/use-whisper",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "React Hook for OpenAI Whisper API with speech recorder and silence removal built-in.",
   "keywords": [
     "react",
@@ -29,7 +29,8 @@
     "build-watch": "tsup --watch",
     "lint-fix": "eslint ./src --ext .ts,.tsx --quiet --fix --ignore-path ./.gitignore",
     "lint-format": "prettier  --loglevel warn --write \"./**/*.{ts,tsx,css,md,json}\" ",
-    "lint": "yarn lint-format && yarn lint-fix "
+    "lint": "yarn lint-format && yarn lint-fix ",
+    "prepublishOnly": "yarn run build-dev && yarn run build-prod"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.11.6",
