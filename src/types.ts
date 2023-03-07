@@ -9,8 +9,9 @@ type UseWhisperNonStopConfig =
     }
 
 export type UseWhisperConfig = {
-  apiToken: string
+  apiKey: string
   autoStart?: boolean
+  customServer?: string
   // pauseTimeout?: number
   removeSilence?: boolean
 } & UseWhisperNonStopConfig
@@ -29,6 +30,7 @@ export type UseWhisperReturn = {
   recording: boolean
   speaking: boolean
   transcript?: UseWhisperTranscript
+  transcripting: boolean
   pauseRecording: () => Promise<void>
   startRecording: () => Promise<void>
   stopRecording: () => Promise<void>
