@@ -87,6 +87,7 @@ export const useWhisper: UseWhisperHook = (config) => {
 
   const onTranscripting = useCallbackAsync(
     async () => {
+      console.log('transcripting speech')
       if (recorder.current) {
         const recordState = await recorder.current.getState()
 
@@ -131,7 +132,8 @@ export const useWhisper: UseWhisperHook = (config) => {
           }
 
           const body = new FormData()
-          body.append('file', blob)
+          const file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
+          body.append('file', file)
           body.append('model', 'whisper-1')
 
           const { default: axios } = await import('axios')
