@@ -3,7 +3,7 @@ export type UseWhisperConfig = {
   autoStart?: boolean
   customServer?: string
   // pauseTimeout?: number
-  nonStop?: false
+  nonStop?: boolean
   removeSilence?: boolean
   stopTimeout?: number
 }
