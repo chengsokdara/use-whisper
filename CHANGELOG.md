@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - autoTranscribe config, default to false. useWhisper will not longer try to transcribe after recorder stopped.
 
+## [0.0.11] - 2023-04-08
+
+### Added
+
+- add onTranscribe callback for handling transcription using custom server
+- add whisperConfig to control Whisper API when trascribing
+
+### Removed
+
+- deprecated customServer, use onTranscribe instead
+
 ## [0.0.10] - 2023-03-08
 
 ### Added
