@@ -26,6 +26,7 @@ import type {
 const defaultConfig: UseWhisperConfig = {
   apiKey: '',
   autoStart: false,
+  autoTranscribe: false,
   customServer: undefined,
   nonStop: false,
   removeSilence: false,
@@ -52,6 +53,7 @@ export const useWhisper: UseWhisperHook = (config) => {
   const {
     apiKey,
     autoStart,
+    autoTranscribe,
     customServer,
     nonStop,
     removeSilence,
@@ -275,12 +277,19 @@ export const useWhisper: UseWhisperHook = (config) => {
       onStopTimeout('stop')
       setRecording(false)
 
-      await onTranscribing()
+      if (autoTranscribe) {
+        await onTranscribing()
+      } else {
+        const blob = await recorder.current.getBlob()
+        setTranscript({
+          blob,
+        })
+      }
 
       await recorder.current.destroy()
       recorder.current = undefined
     }
-  }, [nonStop])
+  }, [autoTranscribe, nonStop])
 
   /**
    * stop media stream event
