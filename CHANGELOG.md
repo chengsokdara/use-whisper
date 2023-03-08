@@ -7,13 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.11] - 2023-04-01
+## [0.0.12] - 2023-04-01
 
 ### Added
 
 - react-native support
 - demo web app
 - server app example
+- support more audio output format
+- able to run custom ffmpeg command
+- expose onTranscribing event
+
+## [0.0.11] - 2023-03-08
+
+### Added
+
+- autoTranscribe config, default to false. useWhisper will not longer try to transcribe after recorder stopped.
 
 ## [0.0.10] - 2023-03-08
 

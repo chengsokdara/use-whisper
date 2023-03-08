@@ -1,6 +1,7 @@
 export type UseWhisperConfig = {
   apiKey?: string
   autoStart?: boolean
+  autoTranscribe?: boolean
   customServer?: string
   nonStop?: boolean
   removeSilence?: boolean

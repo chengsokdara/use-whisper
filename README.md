@@ -80,7 +80,7 @@ export default async function handler(req, res) {
   // you can convert it to buffer and save to disk
   const base64data = file.replace('data:audio/webm;codecs=opus;base64,', '')
   const audioData = Buffer.from(base64data, 'base64')
-  fs.writeFileSync('audio.webm', audioData)
+  fs.writeFileSync('audio.mp3', audioData)
 
   // model will be whisper-1
   const model = req.body.model
@@ -148,6 +148,25 @@ const App = () => {
 }
 ```
 
+- ###### Auto transcribe speech when recorder stopped
+
+```jsx
+import { useWhisper } from '@chengsokdara/use-whisper'
+
+const App = () => {
+  const { transcript } = useWhisper({
+    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    autoTranscribe: true, // will try to automatically transcribe speech
+  })
+
+  return (
+    <div>
+      <p>{transcript.text}</p>
+    </div>
+  )
+}
+```
+
 - ### Dependencies
 
 most of these dependecies are lazy loaded, so it is only imported when it is needed
@@ -162,14 +181,15 @@ most of these dependecies are lazy loaded, so it is only imported when it is nee
 
 - ###### Config Object
 
-| Name          | Type    | Default Value | Description                                                                                                          |
-| ------------- | ------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| apiKey        | string  | ''            | your OpenAI API token                                                                                                |
-| autoStart     | boolean | false         | auto start speech recording on component mount                                                                       |
-| customServer  | string  | undefined     | supply your own whisper REST API endpoint                                                                            |
-| nonStop       | boolean | false         | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
-| removeSilence | boolean | false         | remove silence before sending file to OpenAI API                                                                     |
-| stopTimeout   | number  | 5,000 ms      | if nonStop is true, this become required. This control when the recorder auto stop                                   |
+| Name           | Type    | Default Value | Description                                                                                                          |
+| -------------- | ------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| apiKey         | string  | ''            | your OpenAI API token                                                                                                |
+| autoStart      | boolean | false         | auto start speech recording on component mount                                                                       |
+| autoTranscribe | boolean | false         | should auto transcribe after stop recording                                                                          |
+| customServer   | string  | undefined     | supply your own whisper REST API endpoint                                                                            |
+| nonStop        | boolean | false         | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
+| removeSilence  | boolean | false         | remove silence before sending file to OpenAI API                                                                     |
+| stopTimeout    | number  | 5,000 ms      | if nonStop is true, this become required. This control when the recorder auto stop                                   |
 
 - ###### Return Object
 
