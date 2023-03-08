@@ -52,15 +52,40 @@ _**NOTE:** by providing apiKey, it could be exposed in the browser devtool netwo
 - ###### Custom REST API (if you want to keep your OpenAI API key secure)
 
 ```jsx
-// Client
-
 import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
+  /**
+   * you have more control like this
+   * do whatever you want with the recorded speech
+   * send it to your own custom server
+   * and return the response back to useWhisper
+   */
+  const onTranscribe = (blob: Blob) => {
+    const base64 = await new Promise<string | ArrayBuffer | null>(
+      (resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result)
+        reader.readAsDataURL(blob)
+      }
+    )
+    const body = JSON.stringify({ file: base64, model: 'whisper-1' })
+    const headers = { 'Content-Type': 'application/json' }
+    const { default: axios } = await import('axios')
+    const response = await axios.post('/api/whisper', body, {
+      headers,
+    })
+    const { text } = await response.data
+    // you must return result from your server in Transcript format
+    return {
+      blob,
+      text,
+    }
+  }
+
   const { transcript } = useWhisper({
-    // Optional: your server token if any, will be sent in Bearer
-    apiKey: env.process.YOUR_REST_API_AUTH_TOKEN,
-    customServer: 'https://example.com/api/whisper',
+    // callback to handle transcription with custom server
+    onTranscribe,
   })
 
   return (
@@ -68,22 +93,6 @@ const App = () => {
       <p>{transcript.text}</p>
     </div>
   )
-}
-```
-
-```javascript
-// Server
-
-export default async function handler(req, res) {
-  const file = req.body.file
-  // file will be in base64 string
-  // you can convert it to buffer and save to disk
-  const base64data = file.replace('data:audio/webm;codecs=opus;base64,', '')
-  const audioData = Buffer.from(base64data, 'base64')
-  fs.writeFileSync('audio.mp3', audioData)
-
-  // model will be whisper-1
-  const model = req.body.model
 }
 ```
 
@@ -155,8 +164,31 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     autoTranscribe: true, // will try to automatically transcribe speech
+  })
+
+  return (
+    <div>
+      <p>{transcript.text}</p>
+    </div>
+  )
+}
+```
+
+- ###### Customize Whisper API config when autoTranscribe is true
+
+```jsx
+import { useWhisper } from '@chengsokdara/use-whisper'
+
+const App = () => {
+  const { transcript } = useWhisper({
+    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    whisperConfig: {
+      prompt: 'previous conversation', // you can pass previous conversation for context
+      response_format: 'text', // output text instead of json
+      temperature: 0.8, // random output
+      language: 'es', // Spanish
+    },
   })
 
   return (
@@ -169,39 +201,49 @@ const App = () => {
 
 - ### Dependencies
 
-most of these dependecies are lazy loaded, so it is only imported when it is needed
+  - **@chengsokdara/react-hooks-async** asynchronous react hooks
+  - **recordrtc:** cross-browser audio recorder
+  - **@ffmpeg/ffmpeg:** for silence removal feature
+  - **hark:** for speaking detection
+  - **axios:** since fetch does not work with Whisper endpoint
 
-- **@chengsokdara/react-hooks-async** asynchronous react hooks
-- **recordrtc:** cross-browser audio recorder
-- **@ffmpeg/ffmpeg:** for silence removal feature
-- **hark:** for speaking detection
-- **axios:** since fetch does not work with Whisper endpoint
+_most of these dependecies are lazy loaded, so it is only imported when it is needed_
 
 - ### API
 
 - ###### Config Object
 
-| Name           | Type    | Default Value | Description                                                                                                          |
-| -------------- | ------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
-| apiKey         | string  | ''            | your OpenAI API token                                                                                                |
-| autoStart      | boolean | false         | auto start speech recording on component mount                                                                       |
-| autoTranscribe | boolean | false         | should auto transcribe after stop recording                                                                          |
-| customServer   | string  | undefined     | supply your own whisper REST API endpoint                                                                            |
-| nonStop        | boolean | false         | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
-| removeSilence  | boolean | false         | remove silence before sending file to OpenAI API                                                                     |
-| stopTimeout    | number  | 5,000 ms      | if nonStop is true, this become required. This control when the recorder auto stop                                   |
+| Name           | Type                                               | Default Value | Description                                                                                                          |
+| -------------- | -------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| apiKey         | string                                             | ''            | your OpenAI API token                                                                                                |
+| autoStart      | boolean                                            | false         | auto start speech recording on component mount                                                                       |
+| autoTranscribe | boolean                                            | false         | should auto transcribe after stop recording                                                                          |
+| nonStop        | boolean                                            | false         | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
+| removeSilence  | boolean                                            | false         | remove silence before sending file to OpenAI API                                                                     |
+| stopTimeout    | number                                             | 5,000 ms      | if nonStop is true, this become required. This control when the recorder auto stop                                   |
+| whisperConfig  | [WhisperApiConfig](#whisperapiconfig)              | undefined     | Whisper API transcription config                                                                                     |
+| onTranscribe   | (blob: Blob) => Promise<[Transcript](#transcript)> | undefined     | callback function to handle transcription on your own custom server                                                  |
+
+- ###### WhisperApiConfig
+
+| Name            | Type   | Default Value | Description                                                                                                                                                                                                                                                                                                                                               |
+| --------------- | ------ | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| prompt          | string | undefined     | An optional text to guide the model's style or continue a previous audio segment. The prompt should match the audio language.                                                                                                                                                                                                                             |
+| response_format | string | json          | The format of the transcript output, in one of these options: json, text, srt, verbose_json, or vtt.                                                                                                                                                                                                                                                      |
+| temperature     | number | 0             | The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase the temperature until certain thresholds are hit. |
+| language        | string | en            | The language of the input audio. Supplying the input language in [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will improve accuracy and latency.                                                                                                                                                                             |
 
 - ###### Return Object
 
-| Name           | Type                          | Description                                                               |
-| -------------- | ----------------------------- | ------------------------------------------------------------------------- |
-| recording      | boolean                       | speech recording state                                                    |
-| speaking       | boolean                       | detect when user is speaking                                              |
-| transcribing   | boolean                       | while removing silence from speech and send request to OpenAI Whisper API |
-| transcript     | [**Transcript**](#transcript) | object return after Whisper transcription complete                        |
-| pauseRecording | Promise                       | pause speech recording                                                    |
-| startRecording | Promise                       | start speech recording                                                    |
-| stopRecording  | Promise                       | stop speech recording                                                     |
+| Name           | Type                      | Description                                                               |
+| -------------- | ------------------------- | ------------------------------------------------------------------------- |
+| recording      | boolean                   | speech recording state                                                    |
+| speaking       | boolean                   | detect when user is speaking                                              |
+| transcribing   | boolean                   | while removing silence from speech and send request to OpenAI Whisper API |
+| transcript     | [Transcript](#transcript) | object return after Whisper transcription complete                        |
+| pauseRecording | Promise                   | pause speech recording                                                    |
+| startRecording | Promise                   | start speech recording                                                    |
+| stopRecording  | Promise                   | stop speech recording                                                     |
 
 - ###### Transcript
 

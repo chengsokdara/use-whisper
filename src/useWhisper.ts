@@ -13,7 +13,6 @@ import {
   whisperApiEndpoint,
 } from './configs'
 import type {
-  CustomServerRequestBody,
   UseWhisperConfig,
   UseWhisperHook,
   UseWhisperTimeout,
@@ -31,6 +30,7 @@ const defaultConfig: UseWhisperConfig = {
   nonStop: false,
   removeSilence: false,
   stopTimeout: defaultStopTimeout,
+  onTranscribe: undefined,
 }
 
 /**
@@ -42,30 +42,24 @@ const defaultTimeout: UseWhisperTimeout = {
 
 /**
  * React Hook for OpenAI Whisper
- * @param {UseWhisperConfig} config useWhisper configuration object
- * @returns useWhisper return object
  */
 export const useWhisper: UseWhisperHook = (config) => {
-  if (!config?.customServer && !config?.apiKey) {
-    throw new Error('apiKey is required if customServer is not provided')
-  }
-
   const {
     apiKey,
     autoStart,
     autoTranscribe,
-    customServer,
     nonStop,
     removeSilence,
     stopTimeout,
+    whisperConfig,
+    onTranscribe,
   } = {
     ...defaultConfig,
     ...config,
   }
-  if (!apiKey && !customServer) {
-    throw new Error(
-      'useWhisper cannot work without valid OpenAI API key or custom server.'
-    )
+
+  if (!apiKey && !onTranscribe) {
+    throw new Error('apiKey is required if onTranscribe is not provided')
   }
 
   const listener = useRef<Harker>()
@@ -76,7 +70,7 @@ export const useWhisper: UseWhisperHook = (config) => {
   const [recording, setRecording] = useState<boolean>(false)
   const [speaking, setSpeaking] = useState<boolean>(false)
   const [transcribing, setTranscribing] = useState<boolean>(false)
-  const [transcript, setTranscript] = useState<UseWhisperTranscript>()
+  const [transcript, setTranscript] = useState<UseWhisperTranscript>({})
 
   /**
    * cleanup on component unmounted
@@ -387,52 +381,53 @@ export const useWhisper: UseWhisperHook = (config) => {
             ffmpeg.exit()
           }
 
-          let endpoint = whisperApiEndpoint
-          let body: string | FormData
-          const headers: RawAxiosRequestHeaders = {}
-          if (customServer) {
-            // audio data will be sent as base64
-            endpoint = customServer
-            const base64 = await new Promise<string | ArrayBuffer | null>(
-              (resolve) => {
-                const reader = new FileReader()
-                reader.onloadend = () => resolve(reader.result)
-                reader.readAsDataURL(blob)
-              }
-            )
-            body = JSON.stringify({
-              file: base64,
-              model: 'whisper-1',
-            } as CustomServerRequestBody)
-            headers['Content-Type'] = 'application/json'
+          if (typeof onTranscribe === 'function') {
+            const transcribed = await onTranscribe(blob)
+            console.log('onTranscribe', transcribed)
+            setTranscript(transcribed)
           } else {
             // Whisper only accept multipart/form-data currently
-            body = new FormData()
-            let file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
+            const body = new FormData()
+            let file = new File([blob], 'speech.webm', {
+              type: 'audio/webm;codecs=opus',
+            })
             if (removeSilence) {
-              file = new File([blob], 'speech.webm', {
-                type: 'audio/webm;codecs=opus',
-              })
+              file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
             }
             body.append('file', file)
             body.append('model', 'whisper-1')
+            if (whisperConfig?.prompt) {
+              body.append('prompt', whisperConfig.prompt)
+            }
+            if (whisperConfig?.response_format) {
+              body.append('response_format', whisperConfig.response_format)
+            }
+            if (whisperConfig?.temperature) {
+              body.append('temperature', `${whisperConfig.temperature}`)
+            }
+            if (whisperConfig?.language) {
+              body.append('language', whisperConfig.language)
+            }
+
+            const headers: RawAxiosRequestHeaders = {}
             headers['Content-Type'] = 'multipart/form-data'
+            if (apiKey) {
+              headers['Authorization'] = `Bearer ${apiKey}`
+            }
+
+            const { default: axios } = await import('axios')
+            const response = await axios.post(whisperApiEndpoint, body, {
+              headers,
+            })
+            const { text } = await response.data
+            console.log('onTranscribing', { text })
+
+            setTranscript({
+              blob,
+              text,
+            })
           }
 
-          if (apiKey) {
-            headers['Authorization'] = `Bearer ${apiKey}`
-          }
-
-          const { default: axios } = await import('axios')
-          const response = await axios.post(endpoint, body, {
-            headers,
-          })
-          const { text } = await response.data
-          console.log('onTranscript', { text })
-          setTranscript({
-            blob,
-            text,
-          })
           setTranscribing(false)
         }
       }
@@ -441,7 +436,7 @@ export const useWhisper: UseWhisperHook = (config) => {
       console.info(err)
       setTranscribing(false)
     },
-    [removeSilence]
+    [removeSilence, whisperConfig, onTranscribe]
   )
 
   return {
