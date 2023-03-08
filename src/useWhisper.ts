@@ -41,6 +41,14 @@ const defaultTimeout: UseWhisperTimeout = {
 }
 
 /**
+ * default transcript object
+ */
+const defaultTranscript: UseWhisperTranscript = {
+  blob: undefined,
+  text: undefined,
+}
+
+/**
  * React Hook for OpenAI Whisper
  */
 export const useWhisper: UseWhisperHook = (config) => {
@@ -70,7 +78,8 @@ export const useWhisper: UseWhisperHook = (config) => {
   const [recording, setRecording] = useState<boolean>(false)
   const [speaking, setSpeaking] = useState<boolean>(false)
   const [transcribing, setTranscribing] = useState<boolean>(false)
-  const [transcript, setTranscript] = useState<UseWhisperTranscript>({})
+  const [transcript, setTranscript] =
+    useState<UseWhisperTranscript>(defaultTranscript)
 
   /**
    * cleanup on component unmounted
