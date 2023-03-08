@@ -1,0 +1,39 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [0.0.11] - 2023-04-01
+
+### Added
+
+- react-native support
+- demo web app
+- server app example
+
+## [0.0.10] - 2023-03-08
+
+### Added
+
+- this changelog file
+- comments to every functions and variables
+- @chengsokdara/react-hooks-async for useCallbackAsync and useEffectAsync
+- add Github Actions CI/CD
+
+### Fixed
+
+- now will not send audio to Whisper if converted mp3 audio is empty
+
+### Changed
+
+- transcripting state changed to transcribing to make it a valid word
+- move constants string to configs.ts
+
+### Removed
+
+- hooks directory, now use @chengsokdara/react-hooks-async package instead
+- remove console.log from distribution build

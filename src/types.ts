@@ -2,7 +2,6 @@ export type UseWhisperConfig = {
   apiKey?: string
   autoStart?: boolean
   customServer?: string
-  // pauseTimeout?: number
   nonStop?: boolean
   removeSilence?: boolean
   stopTimeout?: number
@@ -14,20 +13,19 @@ export type CustomServerRequestBody = {
 }
 
 export type UseWhisperTimeout = {
-  pause?: NodeJS.Timeout
   stop?: NodeJS.Timeout
 }
 
 export type UseWhisperTranscript = {
   blob: Blob
-  text: string
+  text?: string
 }
 
 export type UseWhisperReturn = {
   recording: boolean
   speaking: boolean
+  transcribing: boolean
   transcript?: UseWhisperTranscript
-  transcripting: boolean
   pauseRecording: () => Promise<void>
   startRecording: () => Promise<void>
   stopRecording: () => Promise<void>

@@ -1,10 +1,10 @@
-# useWhisper
+# useWhisper()
 
 React Hook for OpenAI Whisper API with speech recorder and silence removal built-in
 
 ---
 
-_Try OpenAI API price calculator, token counter, and dataset manager (preview)_
+_Try OpenAI API price calculator, token counter, and dataset manager (preview)_  
 [https://openai-price-calculator.web.app](https://openai-price-calculator.web.app)
 
 - ### Install
@@ -24,8 +24,8 @@ const App = () => {
   const {
     recording,
     speaking,
+    transcribing,
     transcript,
-    transcripting,
     pauseRecording,
     startRecording,
     stopRecording,
@@ -37,7 +37,7 @@ const App = () => {
     <div>
       <p>Recording: {recording}</p>
       <p>Speaking: {speaking}</p>
-      <p>Transcripting: {transcripting}</p>
+      <p>Transcribing: {transcribing}</p>
       <p>Transcribed Text: {transcript.text}</p>
       <button onClick={() => startRecording()}>Start</button>
       <button onClick={() => pauseRecording()}>Pause</button>
@@ -117,7 +117,6 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 const App = () => {
   const { transcript } = useWhisper({
     // will auto start recording speech upon component mounted
-    //
     autoStart: true,
   })
 
@@ -151,10 +150,13 @@ const App = () => {
 
 - ### Dependencies
 
-  - **recordrtc:** cross-browser audio recorder
-  - **@ffmpeg/ffmpeg:** for remove silence feature
-  - **hark:** for speaking detection
-  - **axios:** since fetch does not work with Whisper API
+most of these dependecies are lazy loaded, so it is only imported when it is needed
+
+- **@chengsokdara/react-hooks-async** asynchronous react hooks
+- **recordrtc:** cross-browser audio recorder
+- **@ffmpeg/ffmpeg:** for silence removal feature
+- **hark:** for speaking detection
+- **axios:** since fetch does not work with Whisper endpoint
 
 - ### API
 
@@ -171,15 +173,15 @@ const App = () => {
 
 - ###### Return Object
 
-| Name           | Type                          | Description                                                       |
-| -------------- | ----------------------------- | ----------------------------------------------------------------- |
-| recording      | boolean                       | speech recording state                                            |
-| speaking       | boolean                       | detect when user is speaking                                      |
-| transcript     | [**Transcript**](#transcript) | object return after Whisper transcription complete                |
-| transcripting  | boolean                       | remove silence from speech and send request to OpenAI Whisper API |
-| pauseRecording | Promise                       | pause speech recording                                            |
-| startRecording | Promise                       | start speech recording                                            |
-| stopRecording  | Promise                       | stop speech recording                                             |
+| Name           | Type                          | Description                                                               |
+| -------------- | ----------------------------- | ------------------------------------------------------------------------- |
+| recording      | boolean                       | speech recording state                                                    |
+| speaking       | boolean                       | detect when user is speaking                                              |
+| transcribing   | boolean                       | while removing silence from speech and send request to OpenAI Whisper API |
+| transcript     | [**Transcript**](#transcript) | object return after Whisper transcription complete                        |
+| pauseRecording | Promise                       | pause speech recording                                                    |
+| startRecording | Promise                       | start speech recording                                                    |
+| stopRecording  | Promise                       | stop speech recording                                                     |
 
 - ###### Transcript
 
@@ -187,6 +189,10 @@ const App = () => {
 | ---- | ------ | ------------------------------------------ |
 | blob | Blob   | recorded speech in JavaScript Blob         |
 | text | string | transcribed text returned from Whisper API |
+
+- ### Roadmap
+
+  - react-native support, will be export as use-whisper/native
 
 ---
 
