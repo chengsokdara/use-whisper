@@ -4,6 +4,12 @@ React Hook for OpenAI Whisper API with speech recorder and silence removal built
 
 ---
 
+- ### Demo
+
+https://user-images.githubusercontent.com/2707253/224084058-8ca4ee54-d514-4c4a-ba5a-9fbfb7b5a77b.mp4
+
+---
+
 _Try OpenAI API price calculator, token counter, and dataset manager (preview)_
 
 [https://openai-price-calculator.web.app](https://openai-price-calculator.web.app)
