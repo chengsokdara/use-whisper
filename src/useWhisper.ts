@@ -25,7 +25,7 @@ import type {
 const defaultConfig: UseWhisperConfig = {
   apiKey: '',
   autoStart: false,
-  autoTranscribe: false,
+  autoTranscribe: true,
   customServer: undefined,
   nonStop: false,
   removeSilence: false,
@@ -356,11 +356,9 @@ export const useWhisper: UseWhisperHook = (config) => {
             if (!ffmpeg.isLoaded()) {
               await ffmpeg.load()
             }
-
             const buffer = await blob.arrayBuffer()
             console.log({ in: buffer.byteLength })
             ffmpeg.FS('writeFile', 'speech.webm', new Uint8Array(buffer))
-
             await ffmpeg.run(
               '-i', // Input
               'speech.webm',
@@ -374,7 +372,6 @@ export const useWhisper: UseWhisperHook = (config) => {
               silenceRemoveCommand,
               'speech.mp3' // Output
             )
-
             const out = ffmpeg.FS('readFile', 'speech.mp3')
             console.log({ out: out.buffer.byteLength })
             // 225 seems to be empty mp3 file
@@ -417,26 +414,22 @@ export const useWhisper: UseWhisperHook = (config) => {
             if (whisperConfig?.language) {
               body.append('language', whisperConfig.language)
             }
-
             const headers: RawAxiosRequestHeaders = {}
             headers['Content-Type'] = 'multipart/form-data'
             if (apiKey) {
               headers['Authorization'] = `Bearer ${apiKey}`
             }
-
             const { default: axios } = await import('axios')
             const response = await axios.post(whisperApiEndpoint, body, {
               headers,
             })
             const { text } = await response.data
             console.log('onTranscribing', { text })
-
             setTranscript({
               blob,
               text,
             })
           }
-
           setTranscribing(false)
         }
       }

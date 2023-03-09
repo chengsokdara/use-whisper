@@ -126,6 +126,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
+    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     // will auto start recording speech upon component mounted
     autoStart: true,
   })
@@ -165,6 +166,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
+    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     autoTranscribe: true, // will try to automatically transcribe speech
   })
 
@@ -218,7 +220,7 @@ _most of these dependecies are lazy loaded, so it is only imported when it is ne
 | -------------- | -------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------- |
 | apiKey         | string                                             | ''            | your OpenAI API token                                                                                                |
 | autoStart      | boolean                                            | false         | auto start speech recording on component mount                                                                       |
-| autoTranscribe | boolean                                            | false         | should auto transcribe after stop recording                                                                          |
+| autoTranscribe | boolean                                            | true          | should auto transcribe after stop recording                                                                          |
 | nonStop        | boolean                                            | false         | if true, record will auto stop after stopTimeout. However if user keep on speaking, the recorder will keep recording |
 | removeSilence  | boolean                                            | false         | remove silence before sending file to OpenAI API                                                                     |
 | stopTimeout    | number                                             | 5,000 ms      | if nonStop is true, this become required. This control when the recorder auto stop                                   |

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.12] - 2023-04-01
+## [0.0.13] - 2023-04-01
 
 ### Added
 
@@ -18,18 +18,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - able to run custom ffmpeg command
 - expose onTranscribing event
 
-## [0.0.11] - 2023-03-08
+## [0.0.12] - 2023-03-09
+
+### Changed
+
+- autoTranscribe default to true
+- update examples in README.md
 
 ### Added
 
-- autoTranscribe config, default to false. useWhisper will not longer try to transcribe after recorder stopped.
-
-## [0.0.11] - 2023-04-08
+## [0.0.11] - 2023-03-08
 
 ### Added
 
 - add onTranscribe callback for handling transcription using custom server
 - add whisperConfig to control Whisper API when trascribing
+
+### Changed
+
+- autoTranscribe config, default to false. useWhisper will not longer try to transcribe after recorder stopped.
 
 ### Removed
 
