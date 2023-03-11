@@ -6,8 +6,6 @@ React Hook for OpenAI Whisper API with speech recorder, real-time transcription 
 
 - ### Demo
 
-https://user-images.githubusercontent.com/2707253/224084058-8ca4ee54-d514-4c4a-ba5a-9fbfb7b5a77b.mp4
-
 - ###### Real-Time transcription demo
 
 https://user-images.githubusercontent.com/2707253/224465747-0b1ee159-21dd-4cd0-af9d-6fc9b882d716.mp4
