@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.13] - 2023-04-01
+## [0.2.0] - 2023-04-01
 
 ### Added
 
@@ -18,14 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - able to run custom ffmpeg command
 - expose onTranscribing event
 
+## [0.1.0] - 2023-03-11
+
+### Added
+
+- streaming option for real-time trascription
+- timeSlice option to control onDataAvailable event
+- onDataAvaiable option for getting recorded blob in interval based on timeSlice
+
+### Changed
+
+- recording in higher audio quality to help Whisper in transcription
+
+### Removed
+
+- customServer option, deprecated since 0.0.11
+
 ## [0.0.12] - 2023-03-09
 
 ### Changed
 
 - autoTranscribe default to true
 - update examples in README.md
-
-### Added
 
 ## [0.0.11] - 2023-03-08
 
