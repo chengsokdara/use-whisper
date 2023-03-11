@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@chengsokdara/react-hooks-async@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@chengsokdara/react-hooks-async/-/react-hooks-async-0.0.1.tgz#627b33d738b6dcf7a072de4d4d8a0f5001ff1475"
-  integrity sha512-4D7xTTAgOgQHVo4iKG4nGZbXkTIQJLgf1jvK5P2HMxGyopQsWdDNqKCU5dbo+od4La7tV66Z8C5uZ5Fm7/c14Q==
+"@chengsokdara/react-hooks-async@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@chengsokdara/react-hooks-async/-/react-hooks-async-0.0.2.tgz#06adba2c042b606bbaf16cfde97ebbceee3584b6"
+  integrity sha512-m7fyEj3b4qLADHHrAkucVBBpuJJ+ZjrQjTSyj/TmQTZrmgDS5MDEoYLaN48+YSho1z8YxelUwDTgUEdSjR03fw==
 
 "@esbuild/android-arm64@0.17.11":
   version "0.17.11"

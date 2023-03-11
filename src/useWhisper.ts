@@ -1,6 +1,7 @@
 import {
   useCallbackAsync,
   useEffectAsync,
+  useMemoAsync,
 } from '@chengsokdara/react-hooks-async'
 import type { RawAxiosRequestHeaders } from 'axios'
 import type { Harker } from 'hark'
@@ -26,10 +27,12 @@ const defaultConfig: UseWhisperConfig = {
   apiKey: '',
   autoStart: false,
   autoTranscribe: true,
-  customServer: undefined,
   nonStop: false,
   removeSilence: false,
   stopTimeout: defaultStopTimeout,
+  streaming: false,
+  timeSlice: 2_000,
+  onDataAvailable: undefined,
   onTranscribe: undefined,
 }
 
@@ -59,17 +62,21 @@ export const useWhisper: UseWhisperHook = (config) => {
     nonStop,
     removeSilence,
     stopTimeout,
+    streaming,
+    timeSlice,
     whisperConfig,
-    onTranscribe,
+    onDataAvailable: onDataAvailableCallback,
+    onTranscribe: onTranscribeCallback,
   } = {
     ...defaultConfig,
     ...config,
   }
 
-  if (!apiKey && !onTranscribe) {
+  if (!apiKey && !onTranscribeCallback) {
     throw new Error('apiKey is required if onTranscribe is not provided')
   }
 
+  const chunks = useRef<Blob[]>([])
   const listener = useRef<Harker>()
   const recorder = useRef<RecordRTCPromisesHandler>()
   const stream = useRef<MediaStream>()
@@ -90,19 +97,20 @@ export const useWhisper: UseWhisperHook = (config) => {
    */
   useEffect(() => {
     return () => {
+      if (chunks.current) {
+        chunks.current = []
+      }
       if (recorder.current) {
         recorder.current.destroy()
         recorder.current = undefined
       }
       onStopTimeout('stop')
-
       if (listener.current) {
         // @ts-ignore
         listener.current.off('speaking', onStartSpeaking)
         // @ts-ignore
         listener.current.off('stopped_speaking', onStopSpeaking)
       }
-
       if (stream.current) {
         stream.current.getTracks().forEach((track) => track.stop())
         stream.current = undefined
@@ -153,23 +161,23 @@ export const useWhisper: UseWhisperHook = (config) => {
     if (!stream.current) {
       await onStartStreaming()
     }
-
     if (stream.current) {
       if (!recorder.current) {
-        const { MediaStreamRecorder, RecordRTCPromisesHandler } = (
-          await import('recordrtc')
-        ).default
+        const {
+          default: { RecordRTCPromisesHandler },
+        } = await import('recordrtc')
         const recorderConfig: Options = {
           mimeType: 'audio/webm',
-          recorderType: MediaStreamRecorder,
+          timeSlice: streaming ? timeSlice : undefined,
           type: 'audio',
+          ondataavailable:
+            autoTranscribe && streaming ? onDataAvailable : undefined,
         }
         recorder.current = new RecordRTCPromisesHandler(
           stream.current,
           recorderConfig
         )
       }
-
       const recordState = await recorder.current.getState()
       if (recordState === 'inactive' || recordState === 'stopped') {
         await recorder.current.startRecording()
@@ -177,13 +185,12 @@ export const useWhisper: UseWhisperHook = (config) => {
       if (recordState === 'paused') {
         await recorder.current.resumeRecording()
       }
-
       if (nonStop) {
         onStartTimeout('stop')
       }
       setRecording(true)
     }
-  }, [nonStop])
+  }, [autoTranscribe, nonStop, streaming, timeSlice])
 
   /**
    * get user media stream event
@@ -198,7 +205,6 @@ export const useWhisper: UseWhisperHook = (config) => {
     stream.current = await navigator.mediaDevices.getUserMedia({
       audio: true,
     })
-
     if (!listener.current) {
       const { default: hark } = await import('hark')
       listener.current = hark(stream.current, {
@@ -275,11 +281,9 @@ export const useWhisper: UseWhisperHook = (config) => {
       if (recordState === 'recording' || recordState === 'paused') {
         await recorder.current.stopRecording()
       }
-
       onStopStreaming()
       onStopTimeout('stop')
       setRecording(false)
-
       if (autoTranscribe) {
         await onTranscribing()
       } else {
@@ -288,8 +292,8 @@ export const useWhisper: UseWhisperHook = (config) => {
           blob,
         })
       }
-
       await recorder.current.destroy()
+      chunks.current = []
       recorder.current = undefined
     }
   }, [autoTranscribe, nonStop])
@@ -308,7 +312,6 @@ export const useWhisper: UseWhisperHook = (config) => {
       listener.current.off('stopped_speaking', onStopSpeaking)
       listener.current = undefined
     }
-
     if (stream.current) {
       stream.current.getTracks().forEach((track) => track.stop())
       stream.current = undefined
@@ -345,7 +348,6 @@ export const useWhisper: UseWhisperHook = (config) => {
         if (recordState === 'stopped') {
           setTranscribing(true)
           let blob = await recorder.current.getBlob()
-
           if (removeSilence) {
             const { createFFmpeg } = await import('@ffmpeg/ffmpeg')
             const ffmpeg = createFFmpeg({
@@ -365,9 +367,9 @@ export const useWhisper: UseWhisperHook = (config) => {
               '-acodec', // Audio codec
               'libmp3lame',
               '-aq', // Audio quality
-              '9',
+              '6',
               '-ar', // Audio sample rate
-              '16000',
+              '44100',
               '-af', // Audio filter = remove silence from start to end with 2 seconds in between
               silenceRemoveCommand,
               'speech.mp3' // Output
@@ -386,44 +388,18 @@ export const useWhisper: UseWhisperHook = (config) => {
             blob = new Blob([out.buffer], { type: 'audio/mpeg' })
             ffmpeg.exit()
           }
-
-          if (typeof onTranscribe === 'function') {
-            const transcribed = await onTranscribe(blob)
+          if (typeof onTranscribeCallback === 'function') {
+            const transcribed = await onTranscribeCallback(blob)
             console.log('onTranscribe', transcribed)
             setTranscript(transcribed)
           } else {
-            // Whisper only accept multipart/form-data currently
-            const body = new FormData()
             let file = new File([blob], 'speech.webm', {
               type: 'audio/webm;codecs=opus',
             })
             if (removeSilence) {
               file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
             }
-            body.append('file', file)
-            body.append('model', 'whisper-1')
-            if (whisperConfig?.prompt) {
-              body.append('prompt', whisperConfig.prompt)
-            }
-            if (whisperConfig?.response_format) {
-              body.append('response_format', whisperConfig.response_format)
-            }
-            if (whisperConfig?.temperature) {
-              body.append('temperature', `${whisperConfig.temperature}`)
-            }
-            if (whisperConfig?.language) {
-              body.append('language', whisperConfig.language)
-            }
-            const headers: RawAxiosRequestHeaders = {}
-            headers['Content-Type'] = 'multipart/form-data'
-            if (apiKey) {
-              headers['Authorization'] = `Bearer ${apiKey}`
-            }
-            const { default: axios } = await import('axios')
-            const response = await axios.post(whisperApiEndpoint, body, {
-              headers,
-            })
-            const { text } = await response.data
+            const text = await onWhispered(file)
             console.log('onTranscribing', { text })
             setTranscript({
               blob,
@@ -438,7 +414,76 @@ export const useWhisper: UseWhisperHook = (config) => {
       console.info(err)
       setTranscribing(false)
     },
-    [removeSilence, whisperConfig, onTranscribe]
+    [apiKey, removeSilence, streaming, whisperConfig, onTranscribeCallback]
+  )
+
+  /**
+   * Get audio data in chunk based on timeSlice
+   * - while recording send audio chunk to Whisper
+   * - chunks are concatenated in succession
+   * - set transcript text with interim result
+   */
+  const onDataAvailable = useCallbackAsync(
+    async (data: Blob) => {
+      console.log('onDataAvailable', data)
+      if (streaming && recorder.current) {
+        onDataAvailableCallback?.(data)
+        chunks.current.push(data)
+        const recorderState = await recorder.current.getState()
+        if (recorderState === 'recording') {
+          const blob = new Blob(chunks.current, {
+            type: 'audio/webm;codecs=opus',
+          })
+          const file = new File([blob], 'speech.webm', {
+            type: 'audio/webm;codecs=opus',
+          })
+          const text = await onWhispered(file)
+          console.log('onInterim', { text })
+          if (text) {
+            setTranscript((prev) => ({ ...prev, text }))
+          }
+        }
+      }
+    },
+    [apiKey, streaming, whisperConfig, onDataAvailableCallback]
+  )
+
+  /**
+   * Send audio file to Whisper to be transcribed
+   * - create formdata and append file, model, and language
+   * - append more Whisper config if whisperConfig is provided
+   * - add OpenAPI Token to header Authorization Bearer
+   * - post with axios to OpenAI Whisper transcript endpoint
+   * - return transcribed text result
+   */
+  const onWhispered = useMemoAsync(
+    async (file: File) => {
+      // Whisper only accept multipart/form-data currently
+      const body = new FormData()
+      body.append('file', file)
+      body.append('model', 'whisper-1')
+      body.append('language', whisperConfig?.language ?? 'en')
+      if (whisperConfig?.prompt) {
+        body.append('prompt', whisperConfig.prompt)
+      }
+      if (whisperConfig?.response_format) {
+        body.append('response_format', whisperConfig.response_format)
+      }
+      if (whisperConfig?.temperature) {
+        body.append('temperature', `${whisperConfig.temperature}`)
+      }
+      const headers: RawAxiosRequestHeaders = {}
+      headers['Content-Type'] = 'multipart/form-data'
+      if (apiKey) {
+        headers['Authorization'] = `Bearer ${apiKey}`
+      }
+      const { default: axios } = await import('axios')
+      const response = await axios.post(whisperApiEndpoint, body, {
+        headers,
+      })
+      return response.data.text
+    },
+    [apiKey, whisperConfig]
   )
 
   return {
