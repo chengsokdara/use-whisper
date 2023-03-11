@@ -39,7 +39,7 @@ const App = () => {
     startRecording,
     stopRecording,
   } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
   })
 
   return (
@@ -112,7 +112,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     streaming: true,
     timeSlice: 1_000, // 1 second
     whisperConfig: {
@@ -135,7 +135,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     // use ffmpeg-wasp to remove silence from recorded speech
     removeSilence: true,
   })
@@ -155,7 +155,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     // will auto start recording speech upon component mounted
     autoStart: true,
   })
@@ -175,7 +175,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     nonStop: true, // keep recording as long as the user is speaking
     stopTimeout: 5000, // auto stop after 5 seconds
   })
@@ -195,7 +195,7 @@ import { useWhisper } from '@chengsokdara/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
-    apiKey: env.process.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
+    apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
     autoTranscribe: true,
     whisperConfig: {
       prompt: 'previous conversation', // you can pass previous conversation for context
