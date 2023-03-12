@@ -14,7 +14,7 @@ https://user-images.githubusercontent.com/2707253/224465747-0b1ee159-21dd-4cd0-a
 
 - ### Announcement
 
-  useWhisper for React Native is in being developed.
+  useWhisper for React Native is being developed.
 
 Repository: [https://github.com/chengsokdara/use-whisper-native](https://github.com/chengsokdara/use-whisper-native)
 
