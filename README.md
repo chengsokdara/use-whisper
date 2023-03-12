@@ -12,15 +12,22 @@ https://user-images.githubusercontent.com/2707253/224465747-0b1ee159-21dd-4cd0-a
 
 ---
 
-_Try OpenAI API price calculator, token counter, and dataset manager (preview)_
+- ### Announcement
 
-[https://openai-price-calculator.web.app](https://openai-price-calculator.web.app)
+  useWhisper for React Native is in being developed.
+
+Repository: [https://github.com/chengsokdara/use-whisper-native](https://github.com/chengsokdara/use-whisper-native)
+
+Progress: [https://github.com/chengsokdara/use-whisper-native/issues/1](https://github.com/chengsokdara/use-whisper-native/issues/1)
 
 - ### Install
 
-`npm i @chengsokdara/use-whisper`
-
-`yarn add @chengsokdara/use-whisper`
+```
+npm i @chengsokdara/use-whisper
+```
+```
+yarn add @chengsokdara/use-whisper
+```
 
 - ### Usage
 
