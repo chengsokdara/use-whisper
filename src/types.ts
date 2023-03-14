@@ -2,6 +2,7 @@ export type UseWhisperConfig = {
   apiKey?: string
   autoStart?: boolean
   autoTranscribe?: boolean
+  mode?: 'transcriptions' | 'translations'
   nonStop?: boolean
   removeSilence?: boolean
   stopTimeout?: number

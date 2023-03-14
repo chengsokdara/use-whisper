@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - able to run custom ffmpeg command
 - expose onTranscribing event
 
+## [0.1.1] - 2023-03-14
+
+### Added
+
+- add mode option for Whisper API, choose either transcriptions or translations
+  (currently only support translation to English)
+
+### Changed
+
+- default timeSlice from 2000ms to 1000ms
+
 ## [0.1.0] - 2023-03-11
 
 ### Added

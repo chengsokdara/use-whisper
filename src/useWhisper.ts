@@ -13,7 +13,7 @@ import {
   silenceRemoveCommand,
   whisperApiEndpoint,
 } from './configs'
-import type {
+import {
   UseWhisperConfig,
   UseWhisperHook,
   UseWhisperTimeout,
@@ -27,11 +27,12 @@ const defaultConfig: UseWhisperConfig = {
   apiKey: '',
   autoStart: false,
   autoTranscribe: true,
+  mode: 'transcriptions',
   nonStop: false,
   removeSilence: false,
   stopTimeout: defaultStopTimeout,
   streaming: false,
-  timeSlice: 2_000,
+  timeSlice: 1_000,
   onDataAvailable: undefined,
   onTranscribe: undefined,
 }
@@ -59,6 +60,7 @@ export const useWhisper: UseWhisperHook = (config) => {
     apiKey,
     autoStart,
     autoTranscribe,
+    mode,
     nonStop,
     removeSilence,
     stopTimeout,
@@ -462,7 +464,9 @@ export const useWhisper: UseWhisperHook = (config) => {
       const body = new FormData()
       body.append('file', file)
       body.append('model', 'whisper-1')
-      body.append('language', whisperConfig?.language ?? 'en')
+      if (mode === 'transcriptions') {
+        body.append('language', whisperConfig?.language ?? 'en')
+      }
       if (whisperConfig?.prompt) {
         body.append('prompt', whisperConfig.prompt)
       }
@@ -478,7 +482,7 @@ export const useWhisper: UseWhisperHook = (config) => {
         headers['Authorization'] = `Bearer ${apiKey}`
       }
       const { default: axios } = await import('axios')
-      const response = await axios.post(whisperApiEndpoint, body, {
+      const response = await axios.post(whisperApiEndpoint + mode, body, {
         headers,
       })
       return response.data.text
