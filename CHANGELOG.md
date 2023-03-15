@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - able to run custom ffmpeg command
 - expose onTranscribing event
 
+## [0.1.2] - 2023-03-15
+
+### Added
+
+- add missing mode to onWhispered dependency list
+
+### Changed
+
+- remove excessive use of useCallback
+
 ## [0.1.1] - 2023-03-14
 
 ### Added

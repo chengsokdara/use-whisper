@@ -1,11 +1,7 @@
-import {
-  useCallbackAsync,
-  useEffectAsync,
-  useMemoAsync,
-} from '@chengsokdara/react-hooks-async'
+import { useEffectAsync, useMemoAsync } from '@chengsokdara/react-hooks-async'
 import type { RawAxiosRequestHeaders } from 'axios'
 import type { Harker } from 'hark'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Options, RecordRTCPromisesHandler } from 'recordrtc'
 import {
   defaultStopTimeout,
@@ -133,23 +129,23 @@ export const useWhisper: UseWhisperHook = (config) => {
   /**
    * start speech recording and start listen for speaking event
    */
-  const startRecording = useCallbackAsync(async () => {
+  const startRecording = async () => {
     await onStartRecording()
-  }, [])
+  }
 
   /**
    * pause speech recording also stop media stream
    */
-  const pauseRecording = useCallbackAsync(async () => {
+  const pauseRecording = async () => {
     await onPauseRecording()
-  }, [])
+  }
 
   /**
    * stop speech recording and start the transcription
    */
-  const stopRecording = useCallbackAsync(async () => {
+  const stopRecording = async () => {
     await onStopRecording()
-  }, [])
+  }
 
   /**
    * start speech recording event
@@ -159,40 +155,44 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - start timeout for stop timeout config
    * - update recording state to true
    */
-  const onStartRecording = useCallbackAsync(async () => {
-    if (!stream.current) {
-      await onStartStreaming()
-    }
-    if (stream.current) {
-      if (!recorder.current) {
-        const {
-          default: { RecordRTCPromisesHandler },
-        } = await import('recordrtc')
-        const recorderConfig: Options = {
-          mimeType: 'audio/webm',
-          timeSlice: streaming ? timeSlice : undefined,
-          type: 'audio',
-          ondataavailable:
-            autoTranscribe && streaming ? onDataAvailable : undefined,
+  const onStartRecording = async () => {
+    try {
+      if (!stream.current) {
+        await onStartStreaming()
+      }
+      if (stream.current) {
+        if (!recorder.current) {
+          const {
+            default: { RecordRTCPromisesHandler },
+          } = await import('recordrtc')
+          const recorderConfig: Options = {
+            mimeType: 'audio/webm',
+            timeSlice: streaming ? timeSlice : undefined,
+            type: 'audio',
+            ondataavailable:
+              autoTranscribe && streaming ? onDataAvailable : undefined,
+          }
+          recorder.current = new RecordRTCPromisesHandler(
+            stream.current,
+            recorderConfig
+          )
         }
-        recorder.current = new RecordRTCPromisesHandler(
-          stream.current,
-          recorderConfig
-        )
+        const recordState = await recorder.current.getState()
+        if (recordState === 'inactive' || recordState === 'stopped') {
+          await recorder.current.startRecording()
+        }
+        if (recordState === 'paused') {
+          await recorder.current.resumeRecording()
+        }
+        if (nonStop) {
+          onStartTimeout('stop')
+        }
+        setRecording(true)
       }
-      const recordState = await recorder.current.getState()
-      if (recordState === 'inactive' || recordState === 'stopped') {
-        await recorder.current.startRecording()
-      }
-      if (recordState === 'paused') {
-        await recorder.current.resumeRecording()
-      }
-      if (nonStop) {
-        onStartTimeout('stop')
-      }
-      setRecording(true)
+    } catch (err) {
+      console.error(err)
     }
-  }, [autoTranscribe, nonStop, streaming, timeSlice])
+  }
 
   /**
    * get user media stream event
@@ -200,56 +200,60 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - ask user for media stream with a system popup
    * - register hark speaking detection listeners
    */
-  const onStartStreaming = useCallbackAsync(async () => {
-    if (stream.current) {
-      stream.current.getTracks().forEach((track) => track.stop())
-    }
-    stream.current = await navigator.mediaDevices.getUserMedia({
-      audio: true,
-    })
-    if (!listener.current) {
-      const { default: hark } = await import('hark')
-      listener.current = hark(stream.current, {
-        interval: 100,
-        play: false,
+  const onStartStreaming = async () => {
+    try {
+      if (stream.current) {
+        stream.current.getTracks().forEach((track) => track.stop())
+      }
+      stream.current = await navigator.mediaDevices.getUserMedia({
+        audio: true,
       })
-      listener.current.on('speaking', onStartSpeaking)
-      listener.current.on('stopped_speaking', onStopSpeaking)
+      if (!listener.current) {
+        const { default: hark } = await import('hark')
+        listener.current = hark(stream.current, {
+          interval: 100,
+          play: false,
+        })
+        listener.current.on('speaking', onStartSpeaking)
+        listener.current.on('stopped_speaking', onStopSpeaking)
+      }
+    } catch (err) {
+      console.error(err)
     }
-  }, [])
+  }
 
   /**
    * start stop timeout event
    */
-  const onStartTimeout = useCallback((type: keyof UseWhisperTimeout) => {
+  const onStartTimeout = (type: keyof UseWhisperTimeout) => {
     if (!timeout.current[type]) {
       timeout.current[type] = setTimeout(onStopRecording, stopTimeout)
     }
-  }, [])
+  }
 
   /**
    * user start speaking event
    * - set speaking state to true
    * - clear stop timeout
    */
-  const onStartSpeaking = useCallback(() => {
+  const onStartSpeaking = () => {
     console.log('start speaking')
     setSpeaking(true)
     onStopTimeout('stop')
-  }, [])
+  }
 
   /**
    * user stop speaking event
    * - set speaking state to false
    * - start stop timeout back
    */
-  const onStopSpeaking = useCallback(() => {
+  const onStopSpeaking = () => {
     console.log('stop speaking')
     setSpeaking(false)
     if (nonStop) {
       onStartTimeout('stop')
     }
-  }, [nonStop])
+  }
 
   /**
    * pause speech recording event
@@ -257,16 +261,20 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - clear stop timeout
    * - set recoriding state to false
    */
-  const onPauseRecording = useCallback(async () => {
-    if (recorder.current) {
-      const recordState = await recorder.current.getState()
-      if (recordState === 'recording') {
-        await recorder.current.pauseRecording()
+  const onPauseRecording = async () => {
+    try {
+      if (recorder.current) {
+        const recordState = await recorder.current.getState()
+        if (recordState === 'recording') {
+          await recorder.current.pauseRecording()
+        }
+        onStopTimeout('stop')
+        setRecording(false)
       }
-      onStopTimeout('stop')
-      setRecording(false)
+    } catch (err) {
+      console.error(err)
     }
-  }, [nonStop])
+  }
 
   /**
    * stop speech recording event
@@ -277,28 +285,32 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - start Whisper transcription event
    * - destroy recordrtc instance and clear it from ref
    */
-  const onStopRecording = useCallbackAsync(async () => {
-    if (recorder.current) {
-      const recordState = await recorder.current.getState()
-      if (recordState === 'recording' || recordState === 'paused') {
-        await recorder.current.stopRecording()
+  const onStopRecording = async () => {
+    try {
+      if (recorder.current) {
+        const recordState = await recorder.current.getState()
+        if (recordState === 'recording' || recordState === 'paused') {
+          await recorder.current.stopRecording()
+        }
+        onStopStreaming()
+        onStopTimeout('stop')
+        setRecording(false)
+        if (autoTranscribe) {
+          await onTranscribing()
+        } else {
+          const blob = await recorder.current.getBlob()
+          setTranscript({
+            blob,
+          })
+        }
+        await recorder.current.destroy()
+        chunks.current = []
+        recorder.current = undefined
       }
-      onStopStreaming()
-      onStopTimeout('stop')
-      setRecording(false)
-      if (autoTranscribe) {
-        await onTranscribing()
-      } else {
-        const blob = await recorder.current.getBlob()
-        setTranscript({
-          blob,
-        })
-      }
-      await recorder.current.destroy()
-      chunks.current = []
-      recorder.current = undefined
+    } catch (err) {
+      console.error(err)
     }
-  }, [autoTranscribe, nonStop])
+  }
 
   /**
    * stop media stream event
@@ -306,7 +318,7 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - stop all media stream tracks
    * - clear media stream from ref
    */
-  const onStopStreaming = useCallback(() => {
+  const onStopStreaming = () => {
     if (listener.current) {
       // @ts-ignore
       listener.current.off('speaking', onStartSpeaking)
@@ -318,18 +330,18 @@ export const useWhisper: UseWhisperHook = (config) => {
       stream.current.getTracks().forEach((track) => track.stop())
       stream.current = undefined
     }
-  }, [])
+  }
 
   /**
    * stop timeout event
    * - clear stop timeout and remove it from ref
    */
-  const onStopTimeout = useCallback((type: keyof UseWhisperTimeout) => {
+  const onStopTimeout = (type: keyof UseWhisperTimeout) => {
     if (timeout.current[type]) {
       clearTimeout(timeout.current[type])
       timeout.current[type] = undefined
     }
-  }, [])
+  }
 
   /**
    * start Whisper transcrition event
@@ -342,9 +354,9 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - set transcript object with audio blob and transcription result from Whisper
    * - set transcribing state to false
    */
-  const onTranscribing = useCallbackAsync(
-    async () => {
-      console.log('transcribing speech')
+  const onTranscribing = async () => {
+    console.log('transcribing speech')
+    try {
       if (recorder.current) {
         const recordState = await recorder.current.getState()
         if (recordState === 'stopped') {
@@ -411,13 +423,11 @@ export const useWhisper: UseWhisperHook = (config) => {
           setTranscribing(false)
         }
       }
-    },
-    (err) => {
+    } catch (err) {
       console.info(err)
       setTranscribing(false)
-    },
-    [apiKey, removeSilence, streaming, whisperConfig, onTranscribeCallback]
-  )
+    }
+  }
 
   /**
    * Get audio data in chunk based on timeSlice
@@ -425,9 +435,9 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - chunks are concatenated in succession
    * - set transcript text with interim result
    */
-  const onDataAvailable = useCallbackAsync(
-    async (data: Blob) => {
-      console.log('onDataAvailable', data)
+  const onDataAvailable = async (data: Blob) => {
+    console.log('onDataAvailable', data)
+    try {
       if (streaming && recorder.current) {
         onDataAvailableCallback?.(data)
         chunks.current.push(data)
@@ -446,9 +456,10 @@ export const useWhisper: UseWhisperHook = (config) => {
           }
         }
       }
-    },
-    [apiKey, streaming, whisperConfig, onDataAvailableCallback]
-  )
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   /**
    * Send audio file to Whisper to be transcribed
@@ -487,7 +498,7 @@ export const useWhisper: UseWhisperHook = (config) => {
       })
       return response.data.text
     },
-    [apiKey, whisperConfig]
+    [apiKey, mode, whisperConfig]
   )
 
   return {
