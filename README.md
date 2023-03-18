@@ -25,6 +25,7 @@ Progress: [https://github.com/chengsokdara/use-whisper-native/issues/1](https://
 ```
 npm i @chengsokdara/use-whisper
 ```
+
 ```
 yarn add @chengsokdara/use-whisper
 ```
@@ -222,6 +223,7 @@ const App = () => {
 
   - **@chengsokdara/react-hooks-async** asynchronous react hooks
   - **recordrtc:** cross-browser audio recorder
+  - **lamejs** encode wav into mp3 for cross-browser support
   - **@ffmpeg/ffmpeg:** for silence removal feature
   - **hark:** for speaking detection
   - **axios:** since fetch does not work with Whisper endpoint

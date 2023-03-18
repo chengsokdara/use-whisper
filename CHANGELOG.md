@@ -18,6 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - able to run custom ffmpeg command
 - expose onTranscribing event
 
+## [0.2.0] - 2023-03-18
+
+### Added
+
+- lamejs as new dependency
+
+### Changed
+
+- audio recorded from microphone will be in lossless .wav format and will be converted to mp3 for cross-browser suppport
+- recorded mp3 be optimized for speech with bitrate of 96k and sample rate of 44.1k
+
+### Fixed
+
+- audio will be in mp3 format across all major browsers like Chrome, Safari, Firefox, Edge. [#13](https://github.com/chengsokdara/use-whisper/issues/13) [#10](https://github.com/chengsokdara/use-whisper/issues/10)
+
 ## [0.1.2] - 2023-03-15
 
 ### Added
