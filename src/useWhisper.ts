@@ -32,6 +32,7 @@ const defaultConfig: UseWhisperConfig = {
   timeSlice: 1_000,
   onDataAvailable: undefined,
   onTranscribe: undefined,
+  onTranscript: undefined,
 }
 
 /**
@@ -66,6 +67,7 @@ export const useWhisper: UseWhisperHook = (config) => {
     whisperConfig,
     onDataAvailable: onDataAvailableCallback,
     onTranscribe: onTranscribeCallback,
+    onTranscript: onTranscriptCallback,
   } = {
     ...defaultConfig,
     ...config,
@@ -436,6 +438,7 @@ export const useWhisper: UseWhisperHook = (config) => {
             const file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
             const text = await onWhispered(file)
             console.log('onTranscribing', { text })
+            onTranscriptCallback(text)
             setTranscript({
               blob,
               text,
