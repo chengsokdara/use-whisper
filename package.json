@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@chengsokdara/react-hooks-async": "^0.0.2",
+    "@ffmpeg/core": "^0.11.0",
     "@ffmpeg/ffmpeg": "^0.11.6",
     "axios": "^1.3.4",
     "hark": "^1.2.3",
