@@ -2,6 +2,8 @@
 
 React Hook for OpenAI Whisper API with speech recorder, real-time transcription and silence removal built-in
 
+This is built directly on top of [@chengsokdara/use-whisper](https://github.com/chengsokdara/use-whisper)
+
 ---
 
 - ### Demo
@@ -12,28 +14,20 @@ https://user-images.githubusercontent.com/2707253/224465747-0b1ee159-21dd-4cd0-a
 
 ---
 
-- ### Announcement
-
-  useWhisper for React Native is being developed.
-
-Repository: [https://github.com/chengsokdara/use-whisper-native](https://github.com/chengsokdara/use-whisper-native)
-
-Progress: [https://github.com/chengsokdara/use-whisper-native/issues/1](https://github.com/chengsokdara/use-whisper-native/issues/1)
-
 - ### Install
 
 ```
-npm i @chengsokdara/use-whisper
+npm i @albertsyh/use-whisper
 ```
 
 ```
-yarn add @chengsokdara/use-whisper
+yarn add @albertsyh/use-whisper
 ```
 
 - ### Usage
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   const {
@@ -65,7 +59,7 @@ const App = () => {
 - ###### Custom Server (keep OpenAI API token secure)
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   /**
@@ -114,7 +108,7 @@ const App = () => {
 - ###### Real-time streaming trascription
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
@@ -137,7 +131,7 @@ const App = () => {
 - ###### Remove silence before sending to Whisper to save cost
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
@@ -157,7 +151,7 @@ const App = () => {
 - ###### Auto start recording on component mounted
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
@@ -177,7 +171,7 @@ const App = () => {
 - ###### Keep recording as long as the user is speaking
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
@@ -197,7 +191,7 @@ const App = () => {
 - ###### Customize Whisper API config when autoTranscribe is true
 
 ```jsx
-import { useWhisper } from '@chengsokdara/use-whisper'
+import { useWhisper } from '@albertsyh/use-whisper'
 
 const App = () => {
   const { transcript } = useWhisper({
@@ -276,12 +270,3 @@ _most of these dependecies are lazy loaded, so it is only imported when it is ne
 | ---- | ------ | ------------------------------------------ |
 | blob | Blob   | recorded speech in JavaScript Blob         |
 | text | string | transcribed text returned from Whisper API |
-
-- ### Roadmap
-
-  - react-native support, will be export as use-whisper/native
-
----
-
-**_Contact me for web or mobile app development using React or React Native_**  
-[https://chengsokdara.github.io](https://chengsokdara.github.io)
