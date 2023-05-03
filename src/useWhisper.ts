@@ -340,6 +340,9 @@ export const useWhisper: UseWhisperHook = (config) => {
    */
   const onStopStreaming = () => {
     if (listener.current) {
+      // If hark doesn't get the chance to trigger the stop event before streaming is stopped
+      // the speaking state doesn't reset and remains true
+      setSpeaking(false)
       // @ts-ignore
       listener.current.off('speaking', onStartSpeaking)
       // @ts-ignore
