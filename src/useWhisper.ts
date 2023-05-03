@@ -392,7 +392,7 @@ export const useWhisper: UseWhisperHook = (config) => {
             const ffmpeg = createFFmpeg({
               mainName: 'main',
               corePath: ffmpegCoreUrl,
-              log: true,
+              log: showLogs,
             })
             if (!ffmpeg.isLoaded()) {
               await ffmpeg.load()
