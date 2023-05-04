@@ -184,6 +184,7 @@ export const useWhisper: UseWhisperHook = (config) => {
             type: 'audio',
             ondataavailable:
               autoTranscribe && streaming ? onDataAvailable : undefined,
+            disableLogs: !showLogs,
           }
           recorder.current = new RecordRTCPromisesHandler(
             stream.current,
