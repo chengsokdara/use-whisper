@@ -44,6 +44,7 @@ const App = () => {
     pauseRecording,
     startRecording,
     stopRecording,
+    resetTranscript,
   } = useWhisper({
     apiKey: process.env.OPENAI_API_TOKEN, // YOUR_OPEN_AI_TOKEN
   })
@@ -57,6 +58,7 @@ const App = () => {
       <button onClick={() => startRecording()}>Start</button>
       <button onClick={() => pauseRecording()}>Pause</button>
       <button onClick={() => stopRecording()}>Stop</button>
+      <button onClick={() => resetTranscript()}>Reset</button>
     </div>
   )
 }
@@ -260,15 +262,17 @@ _most of these dependecies are lazy loaded, so it is only imported when it is ne
 
 - ###### Return Object
 
-| Name           | Type                      | Description                                                               |
-| -------------- | ------------------------- | ------------------------------------------------------------------------- |
-| recording      | boolean                   | speech recording state                                                    |
-| speaking       | boolean                   | detect when user is speaking                                              |
-| transcribing   | boolean                   | while removing silence from speech and send request to OpenAI Whisper API |
-| transcript     | [Transcript](#transcript) | object return after Whisper transcription complete                        |
-| pauseRecording | Promise                   | pause speech recording                                                    |
-| startRecording | Promise                   | start speech recording                                                    |
-| stopRecording  | Promise                   | stop speech recording                                                     |
+| Name            | Type                      | Description                                                               |
+| --------------- | ------------------------- | ------------------------------------------------------------------------- |
+| recording       | boolean                   | speech recording state                                                    |
+| speaking        | boolean                   | detect when user is speaking                                              |
+| transcribing    | boolean                   | while removing silence from speech and send request to OpenAI Whisper API |
+| transcript      | [Transcript](#transcript) | object return after Whisper transcription complete                        |
+| pauseRecording  | Promise                   | pause speech recording                                                    |
+| startRecording  | Promise                   | start speech recording                                                    |
+| stopRecording   | Promise                   | stop speech recording                                                     |
+| stopRecording   | Promise                   | stop speech recording                                                     |
+| resetTranscript | () => void                | set transcript to the default value                                       |
 
 - ###### Transcript
 

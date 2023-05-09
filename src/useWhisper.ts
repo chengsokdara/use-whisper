@@ -527,6 +527,14 @@ export const useWhisper: UseWhisperHook = (config) => {
     [apiKey, mode, whisperConfig]
   )
 
+  /**
+   * reset transcript to the default state
+   * - set defaultTranscript value to the transcript
+   */
+   const resetTranscript = () => {
+    setTranscript(defaultTranscript);
+  }
+
   return {
     recording,
     speaking,
@@ -535,5 +543,6 @@ export const useWhisper: UseWhisperHook = (config) => {
     pauseRecording,
     startRecording,
     stopRecording,
+    resetTranscript,
   }
 }
