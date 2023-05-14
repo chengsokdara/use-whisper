@@ -36,7 +36,7 @@ export async function removeSilenceWithFfmpeg({
   const out = ffmpeg.FS('readFile', 'out.mp3')
   showLogs && console.log({ out: out.buffer.byteLength, length: out.length })
   ffmpeg.exit()
-  // 225 seems to be empty mp3 file
-  if (out.length <= 225) return null
+  // 28000 or less seems to be empty mp3 file
+  if (out.length <= 28000) return null
   return new Blob([out.buffer], { type: 'audio/mpeg' })
 }
