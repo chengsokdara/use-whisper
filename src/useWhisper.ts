@@ -4,18 +4,14 @@ import type { Harker } from 'hark'
 import type { Encoder } from 'lamejs'
 import { useEffect, useRef, useState } from 'react'
 import type { Options, RecordRTCPromisesHandler } from 'recordrtc'
-import {
-  defaultStopTimeout,
-  ffmpegCoreUrl,
-  silenceRemoveCommand,
-  whisperApiEndpoint,
-} from './configs'
+import { defaultStopTimeout, whisperApiEndpoint } from './configs'
 import {
   UseWhisperConfig,
   UseWhisperHook,
   UseWhisperTimeout,
   UseWhisperTranscript,
 } from './types'
+import { removeSilenceWithFfmpeg } from './helpers'
 
 /**
  * default useWhisper configuration
@@ -29,9 +25,11 @@ const defaultConfig: UseWhisperConfig = {
   removeSilence: false,
   stopTimeout: defaultStopTimeout,
   streaming: false,
+  concatChunk: false,
   timeSlice: 1_000,
   onDataAvailable: undefined,
   onTranscribe: undefined,
+  onStreamTranscribe: undefined,
   showLogs: false,
 }
 
@@ -63,10 +61,12 @@ export const useWhisper: UseWhisperHook = (config) => {
     removeSilence,
     stopTimeout,
     streaming,
+    concatChunk,
     timeSlice,
     whisperConfig,
     onDataAvailable: onDataAvailableCallback,
     onTranscribe: onTranscribeCallback,
+    onStreamTranscribe: onStreamTranscribeCallback,
     showLogs,
   } = {
     ...defaultConfig,
@@ -389,44 +389,18 @@ export const useWhisper: UseWhisperHook = (config) => {
           setTranscribing(true)
           let blob = await recorder.current.getBlob()
           if (removeSilence) {
-            const { createFFmpeg } = await import('@ffmpeg/ffmpeg')
-            const ffmpeg = createFFmpeg({
-              mainName: 'main',
-              corePath: ffmpegCoreUrl,
-              log: showLogs,
+            const silencedBlob = await removeSilenceWithFfmpeg({
+              showLogs,
+              blob,
             })
-            if (!ffmpeg.isLoaded()) {
-              await ffmpeg.load()
-            }
-            const buffer = await blob.arrayBuffer()
-            showLogs && console.log({ in: buffer.byteLength })
-            ffmpeg.FS('writeFile', 'in.wav', new Uint8Array(buffer))
-            await ffmpeg.run(
-              '-i', // Input
-              'in.wav',
-              '-acodec', // Audio codec
-              'libmp3lame',
-              '-b:a', // Audio bitrate
-              '96k',
-              '-ar', // Audio sample rate
-              '44100',
-              '-af', // Audio filter = remove silence from start to end with 2 seconds in between
-              silenceRemoveCommand,
-              'out.mp3' // Output
-            )
-            const out = ffmpeg.FS('readFile', 'out.mp3')
-            showLogs && console.log({ out: out.buffer.byteLength })
-            // 225 seems to be empty mp3 file
-            if (out.length <= 225) {
-              ffmpeg.exit()
+            if (!silencedBlob) {
               setTranscript({
                 blob,
               })
               setTranscribing(false)
-              return
+            } else {
+              blob = silencedBlob
             }
-            blob = new Blob([out.buffer], { type: 'audio/mpeg' })
-            ffmpeg.exit()
           } else {
             const buffer = await blob.arrayBuffer()
             showLogs && console.log({ wav: buffer.byteLength })
@@ -459,9 +433,10 @@ export const useWhisper: UseWhisperHook = (config) => {
   /**
    * Get audio data in chunk based on timeSlice
    * - while recording send audio chunk to Whisper
-   * - chunks are concatenated in succession
+   * - chunks can be concatenated in succession, or sent individually
    * - set transcript text with interim result
    */
+
   const onDataAvailable = async (data: Blob) => {
     showLogs && console.log('onDataAvailable', data)
     try {
@@ -471,20 +446,39 @@ export const useWhisper: UseWhisperHook = (config) => {
           const buffer = await data.arrayBuffer()
           const mp3chunk = encoder.current.encodeBuffer(new Int16Array(buffer))
           const mp3blob = new Blob([mp3chunk], { type: 'audio/mpeg' })
-          chunks.current.push(mp3blob)
+          if (concatChunk) {
+            chunks.current.push(mp3blob)
+          } else {
+            chunks.current = [mp3blob]
+          }
         }
         const recorderState = await recorder.current.getState()
         if (recorderState === 'recording') {
-          const blob = new Blob(chunks.current, {
+          let blob = new Blob(chunks.current, {
             type: 'audio/mpeg',
           })
-          const file = new File([blob], 'speech.mp3', {
-            type: 'audio/mpeg',
-          })
-          const text = await onWhispered(file)
-          showLogs && console.log('onInterim', { text })
-          if (text) {
-            setTranscript((prev) => ({ ...prev, text }))
+          if (removeSilence) {
+            showLogs && console.log('Removing silence.')
+            const silencedBlob = await removeSilenceWithFfmpeg({
+              showLogs,
+              blob,
+            })
+
+            if (!silencedBlob) return
+            blob = silencedBlob
+          }
+
+          if (typeof onStreamTranscribeCallback === 'function') {
+            onStreamTranscribeCallback(blob)
+          } else {
+            const file = new File([blob], 'speech.mp3', {
+              type: 'audio/mpeg',
+            })
+            const text = await onWhispered(file)
+            showLogs && console.log('onInterim', { text })
+            if (text) {
+              setTranscript((prev) => ({ ...prev, text }))
+            }
           }
         }
       }
