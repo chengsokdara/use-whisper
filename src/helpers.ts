@@ -3,10 +3,12 @@ import { ffmpegCoreUrl, silenceRemoveCommand } from './configs'
 type RemoveSilencePropTypes = {
   showLogs: boolean | undefined
   blob: Blob
+  threshold: number
 }
 export async function removeSilenceWithFfmpeg({
   showLogs,
   blob: currentBlob,
+  threshold,
 }: RemoveSilencePropTypes): Promise<Blob | null> {
   const { createFFmpeg } = await import('@ffmpeg/ffmpeg')
   const ffmpeg = createFFmpeg({
@@ -36,7 +38,7 @@ export async function removeSilenceWithFfmpeg({
   const out = ffmpeg.FS('readFile', 'out.mp3')
   showLogs && console.log({ out: out.buffer.byteLength, length: out.length })
   ffmpeg.exit()
-  // 28000 or less seems to be empty mp3 file
-  if (out.length <= 28000) return null
+  // This checks if it is less than the threshold to be considered as an empty mp3 file
+  if (out.length <= threshold) return null
   return new Blob([out.buffer], { type: 'audio/mpeg' })
 }

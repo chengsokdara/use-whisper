@@ -4,7 +4,11 @@ import type { Harker } from 'hark'
 import type { Encoder } from 'lamejs'
 import { useEffect, useRef, useState } from 'react'
 import type { Options, RecordRTCPromisesHandler } from 'recordrtc'
-import { defaultStopTimeout, whisperApiEndpoint } from './configs'
+import {
+  defaultStopTimeout,
+  silenceThreshold,
+  whisperApiEndpoint,
+} from './configs'
 import {
   UseWhisperConfig,
   UseWhisperHook,
@@ -31,6 +35,7 @@ const defaultConfig: UseWhisperConfig = {
   onTranscribe: undefined,
   onStreamTranscribe: undefined,
   showLogs: false,
+  silenceBufferThreshold: silenceThreshold,
 }
 
 /**
@@ -68,6 +73,7 @@ export const useWhisper: UseWhisperHook = (config) => {
     onTranscribe: onTranscribeCallback,
     onStreamTranscribe: onStreamTranscribeCallback,
     showLogs,
+    silenceBufferThreshold,
   } = {
     ...defaultConfig,
     ...config,
@@ -392,6 +398,7 @@ export const useWhisper: UseWhisperHook = (config) => {
             const silencedBlob = await removeSilenceWithFfmpeg({
               showLogs,
               blob,
+              threshold: silenceBufferThreshold || silenceThreshold,
             })
             if (!silencedBlob) {
               setTranscript({
@@ -462,6 +469,7 @@ export const useWhisper: UseWhisperHook = (config) => {
             const silencedBlob = await removeSilenceWithFfmpeg({
               showLogs,
               blob,
+              threshold: silenceBufferThreshold || silenceThreshold,
             })
 
             if (!silencedBlob) return

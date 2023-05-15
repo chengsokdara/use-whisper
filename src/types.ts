@@ -14,6 +14,7 @@ export type UseWhisperConfig = {
   onTranscribe?: (blob: Blob) => Promise<UseWhisperTranscript>
   onStreamTranscribe?: (blob: Blob) => Promise<UseWhisperTranscript>
   showLogs?: boolean
+  silenceBufferThreshold?: number
 }
 
 export type UseWhisperTimeout = {
