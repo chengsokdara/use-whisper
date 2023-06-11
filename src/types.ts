@@ -13,6 +13,7 @@ export type UseWhisperConfig = {
   onDataAvailable?: (blob: Blob) => void
   onTranscribe?: (blob: Blob) => Promise<UseWhisperTranscript>
   onStreamTranscribe?: (blob: Blob) => Promise<UseWhisperTranscript>
+  onRecord?: (blob: Blob, arrayBuffer: ArrayBuffer | null) => void
   showLogs?: boolean
   silenceBufferThreshold?: number
 }
@@ -24,6 +25,7 @@ export type UseWhisperTimeout = {
 export type UseWhisperTranscript = {
   blob?: Blob
   text?: string
+  arrayBuffer?: ArrayBuffer
 }
 
 export type UseWhisperReturn = {
