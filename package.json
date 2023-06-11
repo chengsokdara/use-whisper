@@ -1,6 +1,6 @@
 {
   "name": "@albertsyh/use-whisper",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "React Hook for OpenAI Whisper API with speech recorder and silence removal built-in.",
   "keywords": [
     "react",

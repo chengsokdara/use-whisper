@@ -1,9 +1,16 @@
 import { useEffectAsync, useMemoAsync } from '@chengsokdara/react-hooks-async'
 import type { RawAxiosRequestHeaders } from 'axios'
 import type { Harker } from 'hark'
+import hark from 'hark'
 import type { Encoder } from 'lamejs'
-import { useEffect, useRef, useState } from 'react'
-import { Options, RecordRTCPromisesHandler } from 'recordrtc'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Options,
+  RecordRTCPromisesHandler,
+  StereoAudioRecorder,
+} from 'recordrtc'
+import { Mp3Encoder } from 'lamejs'
+
 import {
   defaultStopTimeout,
   silenceThreshold,
@@ -185,9 +192,6 @@ export const useWhisper: UseWhisperHook = (config) => {
       }
       if (stream.current) {
         if (!recorder.current) {
-          const {
-            default: { RecordRTCPromisesHandler, StereoAudioRecorder },
-          } = await import('recordrtc')
           const recorderConfig: Options = {
             mimeType: 'audio/wav',
             numberOfAudioChannels: 1, // mono
@@ -205,8 +209,7 @@ export const useWhisper: UseWhisperHook = (config) => {
           )
         }
         if (!encoder.current) {
-          const { Mp3Encoder } = await import('lamejs')
-          encoder.current = new Mp3Encoder(1, 44100, 96)
+          encoder.current = new Mp3Encoder(1, 44100, 256)
         }
         const recordState = await recorder.current.getState()
         if (recordState === 'inactive' || recordState === 'stopped') {
@@ -240,7 +243,6 @@ export const useWhisper: UseWhisperHook = (config) => {
         audio: true,
       })
       if (!listener.current) {
-        const { default: hark } = await import('hark')
         listener.current = hark(stream.current, {
           interval: 100,
           play: false,
@@ -596,7 +598,17 @@ export const useWhisper: UseWhisperHook = (config) => {
     [apiKey, mode, whisperConfig]
   )
 
-  return {
+  return useMemo(() => {
+    return {
+      recording,
+      speaking,
+      transcribing,
+      transcript,
+      pauseRecording,
+      startRecording,
+      stopRecording,
+    }
+  }, [
     recording,
     speaking,
     transcribing,
@@ -604,5 +616,5 @@ export const useWhisper: UseWhisperHook = (config) => {
     pauseRecording,
     startRecording,
     stopRecording,
-  }
+  ])
 }
