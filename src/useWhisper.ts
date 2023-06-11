@@ -503,7 +503,7 @@ export const useWhisper: UseWhisperHook = (config) => {
     }
 
     if (autoTranscribe && streaming) {
-      showLogs && console.log('onDataAvailable', data)
+      console.log('onDataAvailable', data)
       try {
         if (streaming && recorder.current) {
           onDataAvailableCallback?.(data)
@@ -525,7 +525,7 @@ export const useWhisper: UseWhisperHook = (config) => {
               type: 'audio/mpeg',
             })
             if (removeSilence) {
-              showLogs && console.log('Removing silence.')
+              console.log('Removing silence.')
               const silencedBlob = await removeSilenceWithFfmpeg({
                 showLogs,
                 blob,
@@ -543,7 +543,7 @@ export const useWhisper: UseWhisperHook = (config) => {
                 type: 'audio/mpeg',
               })
               const text = await onWhispered(file)
-              showLogs && console.log('onInterim', { text })
+              console.log('onInterim', { text })
               if (text) {
                 setTranscript((prev) => ({ ...prev, text }))
               }
