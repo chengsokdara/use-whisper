@@ -48,3 +48,9 @@ export type WhisperApiConfig = {
   temperature?: number
   language?: string
 }
+
+export type RemoveSilencePropTypes = {
+  showLogs: boolean | undefined
+  blob: Blob
+  threshold: number
+}

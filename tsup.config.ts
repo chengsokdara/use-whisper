@@ -16,9 +16,8 @@ export const tsup: Options = {
   target: 'es2020',
   outDir: env === 'production' ? 'dist' : 'lib',
   entry: ['src/**/*.ts'],
-  treeshake: false,
+  treeshake: true,
   esbuildOptions: (options) => {
-    // options.drop = env === 'production' ? ['console', 'debugger'] : undefined
-    options.drop = undefined
+    options.drop = env === 'production' ? ['console', 'debugger'] : undefined
   },
 }
