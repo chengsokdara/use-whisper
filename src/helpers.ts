@@ -1,12 +1,12 @@
 import { ffmpegCoreUrl, silenceRemoveCommand } from './configs'
 import { RemoveSilencePropTypes } from './types'
+import { createFFmpeg } from '@ffmpeg/ffmpeg'
 
 export async function removeSilenceWithFfmpeg({
   showLogs,
   blob: currentBlob,
   threshold,
 }: RemoveSilencePropTypes): Promise<Blob | null> {
-  const { createFFmpeg } = await import('@ffmpeg/ffmpeg')
   const ffmpeg = createFFmpeg({
     mainName: 'main',
     corePath: ffmpegCoreUrl,
