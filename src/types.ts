@@ -11,7 +11,10 @@ export type UseWhisperConfig = {
   timeSlice?: number
   whisperConfig?: WhisperApiConfig
   onDataAvailable?: (blob: Blob) => void
-  onTranscribeWhenSilent?: (blob: Blob) => Promise<UseWhisperTranscript>
+  onTranscribeWhenSilent?: (
+    blob?: Blob,
+    complete?: boolean
+  ) => Promise<UseWhisperTranscript>
   onTranscribe?: (blob: Blob) => Promise<UseWhisperTranscript>
   onStreamTranscribe?: (blob: Blob) => Promise<UseWhisperTranscript>
   onRecord?: (blob: Blob, arrayBuffer: ArrayBuffer | null) => void

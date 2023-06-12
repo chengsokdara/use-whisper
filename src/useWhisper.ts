@@ -419,6 +419,34 @@ export const useWhisper: UseWhisperHook = (config) => {
    * - set transcribing state to false
    */
   const onTranscribing = async () => {
+    if (typeof onTranscribeWhenSilentCallback === 'function') {
+      try {
+        let blobLeft: Blob | undefined = undefined
+
+        console.log(
+          'Finished, number of blobs waiting - ',
+          waitingForSilenceChunks.current.length
+        )
+
+        if (waitingForSilenceChunks.current.length > 0) {
+          const chunks = waitingForSilenceChunks.current
+          waitingForSilenceChunks.current = []
+          blobLeft = new Blob(chunks, {
+            type: 'audio/mpeg',
+          })
+        }
+        const transcript = await onTranscribeWhenSilentCallback(blobLeft, true)
+        // Adding this to be somewhat consistent, might clash with onTranscribe and make transcript somewhat unstable if you're using it
+        if (transcript.text)
+          setTranscript((prev) => ({
+            ...prev,
+            text: prev.text ? prev.text + transcript.text : transcript.text,
+          }))
+      } catch (err) {
+        console.info('Error posting the final call to onsilencetranscribe')
+      }
+    }
+
     console.log('transcribing speech')
     try {
       if (encoder.current && recorder.current) {
