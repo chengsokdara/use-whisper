@@ -237,6 +237,7 @@ _most of these dependecies are lazy loaded, so it is only imported when it is ne
 | Name            | Type                                               | Default Value  | Description                                                                                                          |
 | --------------- | -------------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------- |
 | apiKey          | string                                             | ''             | your OpenAI API token                                                                                                |
+| apiBase         | string                                             | 'https://api.openai.com/v1'             | your OpenAI API base  |
 | autoStart       | boolean                                            | false          | auto start speech recording on component mount                                                                       |
 | autoTranscribe  | boolean                                            | true           | should auto transcribe after stop recording                                                                          |
 | mode            | string                                             | transcriptions | control Whisper mode either transcriptions or translations, currently only support translation to English            |

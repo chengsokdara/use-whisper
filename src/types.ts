@@ -1,5 +1,6 @@
 export type UseWhisperConfig = {
   apiKey?: string
+  apiBase?: string
   autoStart?: boolean
   autoTranscribe?: boolean
   mode?: 'transcriptions' | 'translations'

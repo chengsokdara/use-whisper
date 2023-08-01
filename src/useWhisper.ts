@@ -8,7 +8,6 @@ import {
   defaultStopTimeout,
   ffmpegCoreUrl,
   silenceRemoveCommand,
-  whisperApiEndpoint,
 } from './configs'
 import {
   UseWhisperConfig,
@@ -22,6 +21,7 @@ import {
  */
 const defaultConfig: UseWhisperConfig = {
   apiKey: '',
+  apiBase: 'https://api.openai.com/v1',
   autoStart: false,
   autoTranscribe: true,
   mode: 'transcriptions',
@@ -55,6 +55,7 @@ const defaultTranscript: UseWhisperTranscript = {
 export const useWhisper: UseWhisperHook = (config) => {
   const {
     apiKey,
+    apiBase,
     autoStart,
     autoTranscribe,
     mode,
@@ -519,12 +520,12 @@ export const useWhisper: UseWhisperHook = (config) => {
         headers['Authorization'] = `Bearer ${apiKey}`
       }
       const { default: axios } = await import('axios')
-      const response = await axios.post(whisperApiEndpoint + mode, body, {
+      const response = await axios.post(apiBase + '/audio/' + mode, body, {
         headers,
       })
       return response.data.text
     },
-    [apiKey, mode, whisperConfig]
+    [apiKey, apiBase, mode, whisperConfig]
   )
 
   return {
