@@ -20,6 +20,7 @@ export type UseWhisperTimeout = {
 export type UseWhisperTranscript = {
   blob?: Blob
   text?: string
+  response?: any // support for verbose_json
 }
 
 export type UseWhisperReturn = {

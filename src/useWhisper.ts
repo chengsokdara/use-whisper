@@ -47,6 +47,7 @@ const defaultTimeout: UseWhisperTimeout = {
 const defaultTranscript: UseWhisperTranscript = {
   blob: undefined,
   text: undefined,
+  response: undefined,
 }
 
 /**
@@ -190,7 +191,7 @@ export const useWhisper: UseWhisperHook = (config) => {
         }
         if (!encoder.current) {
           const { Mp3Encoder } = await import('lamejs')
-          encoder.current = new Mp3Encoder(1, 44100, 96)
+          encoder.current = new (Mp3Encoder as any)(1, 44100, 96)
         }
         const recordState = await recorder.current.getState()
         if (recordState === 'inactive' || recordState === 'stopped') {
@@ -434,11 +435,13 @@ export const useWhisper: UseWhisperHook = (config) => {
             setTranscript(transcribed)
           } else {
             const file = new File([blob], 'speech.mp3', { type: 'audio/mpeg' })
-            const text = await onWhispered(file)
+            const response = await onWhispered(file);
+            const text = response.text;
             console.log('onTranscribing', { text })
             setTranscript({
               blob,
               text,
+              response
             })
           }
           setTranscribing(false)
@@ -475,10 +478,11 @@ export const useWhisper: UseWhisperHook = (config) => {
           const file = new File([blob], 'speech.mp3', {
             type: 'audio/mpeg',
           })
-          const text = await onWhispered(file)
+          const response = await onWhispered(file);
+          const text = response.text; 
           console.log('onInterim', { text })
           if (text) {
-            setTranscript((prev) => ({ ...prev, text }))
+            setTranscript((prev) => ({ ...prev, text, response }))
           }
         }
       }
@@ -522,7 +526,7 @@ export const useWhisper: UseWhisperHook = (config) => {
       const response = await axios.post(whisperApiEndpoint + mode, body, {
         headers,
       })
-      return response.data.text
+      return response.data;
     },
     [apiKey, mode, whisperConfig]
   )
